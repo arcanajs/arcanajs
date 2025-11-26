@@ -115,9 +115,7 @@ export const createClientConfig = (): webpack.Configuration => {
     plugins: [
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
-        template: fs.existsSync(path.resolve(cwd, "public/index.html"))
-          ? path.resolve(cwd, "public/index.html")
-          : path.resolve(__dirname, "../lib/server/default-index.html"),
+        template: path.resolve(__dirname, "../lib/server/default-index.html"),
         filename: "index.html",
         inject: "body",
         minify: isProduction
@@ -206,6 +204,6 @@ export const createServerConfig = (): webpack.Configuration => {
         },
       ],
     },
-    devtool: isProduction ? "source-map" : "eval-source-map",
+    // devtool: isProduction ? "source-map" : "eval-source-map",
   };
 };
