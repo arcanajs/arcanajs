@@ -1,6 +1,6 @@
 {
   "name": "arcanajs",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "ArcanaJS Framework",
   "main": "framework/lib/index.js",
   "types": "framework/lib/index.d.ts",
