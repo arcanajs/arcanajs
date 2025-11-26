@@ -90,7 +90,10 @@ export const createClientConfig = (): webpack.Configuration => {
             options: {
               presets: [
                 resolveLoader("@babel/preset-env"),
-                resolveLoader("@babel/preset-react"),
+                [
+                  resolveLoader("@babel/preset-react"),
+                  { runtime: "automatic" },
+                ],
                 resolveLoader("@babel/preset-typescript"),
               ],
             },
@@ -161,6 +164,27 @@ export const createServerConfig = (): webpack.Configuration => {
     "src/server/main",
   ]);
 
+  // View Injection Logic
+  const viewsDir = path.resolve(cwd, "src/views");
+  const hasViews = fs.existsSync(viewsDir);
+  const viewsLoaderPath = path.resolve(
+    __dirname,
+    "../../node_modules/.cache/arcanajs/views-loader.js"
+  );
+
+  // Ensure cache directory exists
+  const cacheDir = path.dirname(viewsLoaderPath);
+  if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true });
+  }
+
+  // Generate the loader file
+  const loaderContent = hasViews
+    ? `module.exports = require.context('${viewsDir}', true, /\\.(tsx|jsx)$/);`
+    : `module.exports = null;`;
+
+  fs.writeFileSync(viewsLoaderPath, loaderContent);
+
   return {
     mode: isProduction ? "production" : "development",
     target: "node",
@@ -169,9 +193,16 @@ export const createServerConfig = (): webpack.Configuration => {
       path: path.resolve(cwd, "dist"),
       filename: "server.js",
     },
-    externals: [nodeExternals()],
+    externals: [
+      nodeExternals({
+        allowlist: [/^arcanajs/],
+      }),
+    ],
     resolve: {
       extensions: [".ts", ".tsx", ".js", ".jsx"],
+      alias: {
+        "arcana-views": viewsLoaderPath,
+      },
     },
     resolveLoader: {
       modules: ["node_modules", path.resolve(__dirname, "../../node_modules")],
@@ -186,7 +217,10 @@ export const createServerConfig = (): webpack.Configuration => {
             options: {
               presets: [
                 resolveLoader("@babel/preset-env"),
-                resolveLoader("@babel/preset-react"),
+                [
+                  resolveLoader("@babel/preset-react"),
+                  { runtime: "automatic" },
+                ],
                 resolveLoader("@babel/preset-typescript"),
               ],
             },

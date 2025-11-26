@@ -52,8 +52,21 @@ export class ArcanaJSServer {
     }
 
     if (!views) {
-      // Auto-discovery using fs (Server-side only)
-      views = this.discoverViews();
+      // Try to load from injected alias (Webpack)
+      try {
+        // @ts-ignore - This alias is injected by Webpack
+        const injectedViews = require("arcana-views");
+        if (injectedViews) {
+          views = {};
+          injectedViews.keys().forEach((key: string) => {
+            const viewName = key.replace(/^\.\/(.*)\.tsx$/, "$1");
+            views![viewName] = injectedViews(key).default;
+          });
+        }
+      } catch (e) {
+        // Fallback to auto-discovery using fs (Server-side only, non-bundled)
+        views = this.discoverViews();
+      }
     }
 
     if (!views || Object.keys(views).length === 0) {
