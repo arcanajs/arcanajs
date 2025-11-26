@@ -1,0 +1,71 @@
+{
+  "name": "arcanajs",
+  "version": "2.0.0",
+  "description": "ArcanaJS Framework",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./server": "./lib/server.js"
+  },
+  "files": [
+    "lib",
+    "webpack.client.js",
+    "webpack.server.js",
+    "tsconfig.json",
+    "babel.config.js",
+    "postcss.config.js",
+    "tailwind.config.js"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "build:app": "cross-env NODE_ENV=production webpack --config webpack.server.js && cross-env NODE_ENV=production webpack --config webpack.client.js",
+    "dev:server": "cross-env NODE_ENV=development webpack --config webpack.server.js --watch",
+    "dev:server:tsx": "tsx watch src/example/server/index.ts",
+    "dev:client": "cross-env NODE_ENV=development webpack --config webpack.client.js --watch",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:tsx": "concurrently \"npm run dev:server:tsx\" \"npm run dev:client\"",
+    "start": "cross-env NODE_ENV=production node dist/server.js"
+  },
+  "dependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@babel/preset-react": "^7.22.15",
+    "@babel/preset-typescript": "^7.23.0",
+    "@tailwindcss/postcss": "^4.1.17",
+    "autoprefixer": "^10.4.22",
+    "babel-loader": "^10.0.0",
+    "clean-webpack-plugin": "^4.0.0",
+    "compression": "^1.8.1",
+    "concurrently": "^9.2.1",
+    "cookie-parser": "^1.4.7",
+    "cross-env": "^10.1.0",
+    "css-loader": "^7.1.2",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "html-webpack-plugin": "^5.6.5",
+    "mini-css-extract-plugin": "^2.9.4",
+    "null-loader": "^4.0.1",
+    "postcss": "^8.5.6",
+    "postcss-loader": "^8.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "style-loader": "^4.0.0",
+    "tailwindcss": "^4.1.17",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^6.0.1",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6"
+  }
+}
