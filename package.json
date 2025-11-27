@@ -35,7 +35,7 @@
     "bin"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/ && cp -r src/templates framework/ && cp src/templates/arcanajs.config.js framework/templates/"
+    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/ && cp -r src/templates framework/ && cp src/templates/arcanajs.config.ts framework/templates/"
   },
   "dependencies": {
     "@babel/core": "^7.23.0",

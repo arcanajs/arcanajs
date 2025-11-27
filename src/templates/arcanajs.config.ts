@@ -1,11 +1,14 @@
+import { defineConfig } from "arcanajs/config";
+import type { ArcanaJSUserConfig } from "arcanajs/types";
+
 /**
- * ArcanaJS Configuration Template
+ * ArcanaJS Configuration
  *
  * This file defines the configuration for your ArcanaJS application.
  *
- * @type {import('arcanajs').ArcanaJSUserConfig}
+ * @see https://github.com/arcanajs/arcanajs for documentation
  */
-export default {
+export default defineConfig({
   // Server configuration
   server: {
     // Port to run the server on
@@ -38,4 +41,4 @@ export default {
     // Custom layout component (optional)
     // layout: undefined,
   },
-};
+} satisfies ArcanaJSUserConfig);
