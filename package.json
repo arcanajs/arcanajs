@@ -1,6 +1,6 @@
 {
   "name": "arcanajs",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "ArcanaJS Framework",
   "main": "framework/lib/index.js",
   "types": "framework/lib/index.d.ts",
@@ -35,7 +35,7 @@
     "bin"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/ && cp -r src/templates framework/ && cp src/templates/arcanajs.config.ts framework/templates/"
+    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/ && cp -r src/templates framework/ && cp src/templates/arcanajs.config.ts framework/templates/ && echo '/// <reference path=\"./global.d.ts\" />' | cat - framework/lib/index.d.ts > temp && mv temp framework/lib/index.d.ts"
   },
   "dependencies": {
     "@babel/core": "^7.23.0",
