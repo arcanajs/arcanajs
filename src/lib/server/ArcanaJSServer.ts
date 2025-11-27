@@ -183,9 +183,9 @@ export class ArcanaJSServer {
             // Use __non_webpack_require__ if available to avoid Webpack bundling issues
             // or standard require if running in Node directly
             const requireFunc =
-              typeof (globalThis as any).__non_webpack_require__ !== "undefined"
-                ? (globalThis as any).__non_webpack_require__
-                : require;
+              typeof __non_webpack_require__ !== "undefined"
+                ? __non_webpack_require__
+                : eval("require");
 
             // Register ts-node if needed
             if (file.endsWith(".tsx") || file.endsWith(".ts")) {
