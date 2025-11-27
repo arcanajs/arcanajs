@@ -1,7 +1,7 @@
-import React from "react";
-import { Page } from "../components/Page";
-import { Head } from "../components/Head";
 import { Body } from "../components/Body";
+import { Head } from "../components/Head";
+import { Link } from "../components/Link";
+import { Page } from "../components/Page";
 
 interface NotFoundPageProps {
   url?: string;
@@ -52,7 +52,7 @@ export default function NotFoundPage({ url }: NotFoundPageProps) {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
+                <Link
                   href="/"
                   className="btn-primary px-8 py-3.5 text-white font-semibold rounded-xl inline-flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
@@ -70,7 +70,7 @@ export default function NotFoundPage({ url }: NotFoundPageProps) {
                     />
                   </svg>
                   Go Home
-                </a>
+                </Link>
 
                 <button
                   onClick={() => window.history.back()}
@@ -95,12 +95,12 @@ export default function NotFoundPage({ url }: NotFoundPageProps) {
             </div>
             <div className="mt-8 text-gray-500 text-sm">
               If you believe this is an error, please{" "}
-              <a
+              <Link
                 href="/contact"
                 className="text-orange-400 hover:text-orange-300 underline transition-colors"
               >
                 contact support
-              </a>
+              </Link>
               .
             </div>
           </div>

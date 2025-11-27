@@ -1,7 +1,7 @@
-import React from "react";
-import { Page } from "../components/Page";
-import { Head } from "../components/Head";
 import { Body } from "../components/Body";
+import { Head } from "../components/Head";
+import { Link } from "../components/Link";
+import { Page } from "../components/Page";
 
 interface ErrorPageProps {
   message?: string;
@@ -53,7 +53,7 @@ export default function ErrorPage({
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                <a
+                <Link
                   href="/"
                   className="btn-primary px-8 py-3.5 text-white font-semibold rounded-xl inline-flex items-center justify-center gap-2 w-full sm:w-auto bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 border-none shadow-red-900/20"
                 >
@@ -71,7 +71,7 @@ export default function ErrorPage({
                     />
                   </svg>
                   Go Home
-                </a>
+                </Link>
 
                 <button
                   onClick={() => window.location.reload()}
@@ -123,12 +123,12 @@ export default function ErrorPage({
 
             <div className="mt-8 text-gray-500 text-sm">
               If this problem persists, please{" "}
-              <a
+              <Link
                 href="/contact"
                 className="text-red-400 hover:text-red-300 underline transition-colors"
               >
                 contact support
-              </a>
+              </Link>
               .
             </div>
           </div>
