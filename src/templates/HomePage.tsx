@@ -38,16 +38,15 @@ export default function HomePage() {
             {/* Navigation */}
             <nav className="fixed top-0 w-full z-50 nav-blur animate-slide-down border-b border-white/5 backdrop-blur-sm">
               <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center space-x-3 group cursor-pointer">
-                  <div className="relative w-10 h-10">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative w-full h-full bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
-                      <span className="text-white font-bold text-xl">A</span>
-                    </div>
+                <div className="flex items-center gap-3 group cursor-pointer">
+                  <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-600 rounded-full blur-lg opacity-40 group-hover:opacity-100 transition-opacity"></div>
+                    <img
+                      src="arcanajs.png"
+                      alt="ArcanaJS Logo"
+                      className="relative w-full h-full object-contain"
+                    />
                   </div>
-                  <span className="text-xl font-bold text-white group-hover:text-orange-400 transition-colors tracking-tight">
-                    ArcanaJS
-                  </span>
                 </div>
                 <div className="hidden md:flex space-x-8">
                   <a
@@ -277,9 +276,11 @@ export default function HomePage() {
                       <div className="text-gray-500 mb-1">
                         # Create a new folder
                       </div>
-                      <div className="text-orange-400">mkdir my-app cd my-app</div>
+                      <div className="text-orange-400">
+                        mkdir my-app cd my-app
+                      </div>
                     </div>
-                    <div className="mb-4">  
+                    <div className="mb-4">
                       <div className="text-gray-500 mb-1">
                         # Initialize a new project
                       </div>
