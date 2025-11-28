@@ -57,6 +57,7 @@ export const requiredDirs = [
   "public",
   "src",
   "src/client",
+  "src/db",
   "src/server",
   "src/server/routes",
   "src/server/controllers",
