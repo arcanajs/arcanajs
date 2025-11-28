@@ -18,26 +18,7 @@
       "require": "./dist/arcanajs.js",
       "import": "./dist/arcanajs.js",
       "default": "./dist/arcanajs.js"
-    },
-    "./client": {
-      "types": "./dist/lib/client/index.d.ts",
-      "require": "./dist/arcanajs.js",
-      "import": "./dist/arcanajs.js",
-      "default": "./dist/arcanajs.js"
-    },
-    "./server": {
-      "types": "./dist/lib/server/ArcanaJSServer.d.ts",
-      "require": "./dist/arcanajs.js",
-      "import": "./dist/arcanajs.js",
-      "default": "./dist/arcanajs.js"
-    },
-    "./types": {
-      "types": "./dist/lib/types.d.ts",
-      "require": "./dist/arcanajs.js",
-      "import": "./dist/arcanajs.js",
-      "default": "./dist/arcanajs.js"
-    },
-    "./package.json": "./package.json"
+    }
   },
   "bin": {
     "arcanajs": "./bin/arcanajs.js"
@@ -46,6 +27,10 @@
     "dist",
     "bin"
   ],
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
   "dependencies": {
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.23.0",
@@ -84,6 +69,7 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@types/webpack-node-externals": "^3.0.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

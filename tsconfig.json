@@ -7,11 +7,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "module": "CommonJS",
+    "moduleResolution": "bundler",
+    "module": "esnext",
     "outDir": "./dist",
     "rootDir": "./src",
-
     "declaration": true
   },
   "include": ["src/lib/**/*", "src/cli/**/*"]

@@ -1,14 +1,15 @@
 import path from "path";
 import webpack from "webpack";
-const nodeExternals = require("webpack-node-externals");
+import nodeExternals from "webpack-node-externals";
 
 const cwd = process.cwd();
 
 const config: webpack.Configuration = {
-  mode: "production", 
+  mode: "production",
   target: "node",
   entry: {
     arcanajs: path.resolve(cwd, "src/lib/index.ts"),
+    "cli/index": path.resolve(cwd, "src/cli/index.ts"),
   },
   output: {
     path: path.resolve(cwd, "dist"),
@@ -17,6 +18,9 @@ const config: webpack.Configuration = {
       type: "commonjs",
     },
     clean: false,
+  },
+  optimization: {
+    nodeEnv: false,
   },
   externals: [nodeExternals(), "arcana-views"],
   resolve: {

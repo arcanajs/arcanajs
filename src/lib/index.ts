@@ -1,5 +1,3 @@
-/// <reference path="./global.d.ts" />
-
 import { Express } from "express";
 import ArcanaJSServer, { ArcanaJSConfig } from "./server/ArcanaJSServer";
 
@@ -34,6 +32,8 @@ export { default as useRouter } from "./shared/hooks/useRouter";
 // ============================================================================
 
 export { default as ArcanaJSServer } from "./server/ArcanaJSServer";
+
+export { Express, NextFunction, Request, Response } from "express";
 
 // ============================================================================
 // Routing Exports

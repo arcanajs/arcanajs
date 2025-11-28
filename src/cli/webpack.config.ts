@@ -8,7 +8,8 @@ import nodeExternals from "webpack-node-externals";
 const cwd = process.cwd();
 
 // Helper to resolve loaders from the framework's node_modules
-const resolveLoader = (loader: string) => require.resolve(loader);
+const resolveLoader = (loader: string) =>
+  __non_webpack_require__.resolve(loader);
 
 import fs from "fs";
 
