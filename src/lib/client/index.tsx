@@ -5,16 +5,10 @@ import { ArcanaJSApp } from "../shared/core/ArcanaJSApp";
 import ErrorPage from "../shared/views/ErrorPage";
 import NotFoundPage from "../shared/views/NotFoundPage";
 
-// ============================================================================
-// Type Exports
-// ============================================================================
-
-export type { LayoutComponent, ViewsRegistry } from "../types";
-
 /**
  * Navigation options for configuring ArcanaJS behavior
  */
-export interface NavigationOptions {
+interface NavigationOptions {
   /**
    * Callback function called after each successful navigation
    * Useful for analytics, logging, or custom scroll behavior
@@ -38,32 +32,12 @@ export interface NavigationOptions {
  *
  * @example
  * ```typescript
- * // Using webpack require.context (recommended)
- * import { hydrateArcanaJS } from 'arcanajs/client';
- *
- * const views = require.context('./views', false, /\.tsx$/);
- * hydrateArcanaJS(views);
- * ```
- *
- * @example
- * ```typescript
- * // Using manual views registry
- * import { hydrateArcanaJS } from 'arcanajs/client';
- * import HomePage from './views/HomePage';
- * import AboutPage from './views/AboutPage';
- *
- * hydrateArcanaJS({
- *   HomePage,
- *   AboutPage,
- * });
- * ```
- *
- * @example
- * ```typescript
  * // With navigation options
  * import { hydrateArcanaJS } from 'arcanajs/client';
  *
- * const views = require.context('./views', false, /\.tsx$/);
+ * // @ts-ignore
+ * const views = require("arcana-views");
+ * 
  * hydrateArcanaJS(views, undefined, {
  *   onNavigate: (url) => {
  *     // Track page views
@@ -72,7 +46,7 @@ export interface NavigationOptions {
  * });
  * ```
  */
-export const hydrateArcanaJS = (
+const hydrateArcanaJS = (
   viewsOrContext: Record<string, React.FC<any>> | any,
   layout?: React.FC<any>,
   options?: NavigationOptions
@@ -129,3 +103,4 @@ export const hydrateArcanaJS = (
     }
   }
 };
+export default hydrateArcanaJS;

@@ -1,12 +1,12 @@
 import React from "react";
-import { useRouter } from "../hooks/useRouter";
+import  useRouter  from "../hooks/useRouter";
 
 interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string;
   prefetch?: boolean;
 }
 
-export const Link: React.FC<LinkProps> = ({
+const Link: React.FC<LinkProps> = ({
   href,
   children,
   prefetch = false,
@@ -48,3 +48,4 @@ export const Link: React.FC<LinkProps> = ({
     </a>
   );
 };
+export default Link;

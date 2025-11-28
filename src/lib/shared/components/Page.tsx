@@ -1,8 +1,8 @@
 import React from "react";
 import { PageContext } from "../context/PageContext";
-import { Head } from "./Head";
+import Head from "./Head";
 
-export const Page = <T,>({
+const Page = <T,>({
   data,
   title,
   children,
@@ -22,3 +22,4 @@ export const Page = <T,>({
     </PageContext.Provider>
   );
 };
+export default Page;

@@ -1,49 +1,75 @@
 /// <reference path="./global.d.ts" />
 
+import { Express } from "express";
+import ArcanaJSServer, { ArcanaJSConfig } from "./server/ArcanaJSServer";
+
 // ============================================================================
 // Component Exports
 // ============================================================================
 
-export * from "./shared/components/Body";
-export * from "./shared/components/Head";
-export * from "./shared/components/Link";
-export * from "./shared/components/NavLink";
-export * from "./shared/components/Page";
+export { default as Body } from "./shared/components/Body";
+export { default as Head } from "./shared/components/Head";
+export { default as Link } from "./shared/components/Link";
+export { default as NavLink } from "./shared/components/NavLink";
+export { default as Page } from "./shared/components/Page";
 
 // ============================================================================
-// Context Exports
+// Client Exports
 // ============================================================================
 
-export * from "./shared/context/HeadContext";
-export * from "./shared/context/PageContext";
-export * from "./shared/context/RouterContext";
-
-// ============================================================================
-// Core Exports
-// ============================================================================
-
-export * from "./shared/core/ArcanaJSApp";
+export { default as hydrateArcanaJS } from "./client/index";
 
 // ============================================================================
 // Hook Exports
 // ============================================================================
 
-export * from "./shared/hooks/useHead";
-export * from "./shared/hooks/useLocation";
-export * from "./shared/hooks/usePage";
-export * from "./shared/hooks/useParams";
-export * from "./shared/hooks/useQuery";
-export * from "./shared/hooks/useRouter";
+export { default as useLocation } from "./shared/hooks/useLocation";
+export { default as usePage } from "./shared/hooks/usePage";
+export { default as useParams } from "./shared/hooks/useParams";
+export { default as useQuery } from "./shared/hooks/useQuery";
+export { default as useRouter } from "./shared/hooks/useRouter";
 
 // ============================================================================
-// Default Error Views
+// Server Core Exports
 // ============================================================================
 
-export { default as ErrorPage } from "./shared/views/ErrorPage";
-export { default as NotFoundPage } from "./shared/views/NotFoundPage";
+export { default as ArcanaJSServer } from "./server/ArcanaJSServer";
 
 // ============================================================================
-// Type Exports
+// Routing Exports
 // ============================================================================
 
-export * from "./types";
+export { default as Route } from "./server/Router";
+
+// ============================================================================
+// Server Factory Function
+// ============================================================================
+
+/**
+ * Create an ArcanaJS server with the given Express app
+ *
+ * @param app - Express application instance
+ * @param config - Optional ArcanaJS configuration
+ * @returns ArcanaJSServer instance
+ *
+ * @example
+ * ```typescript
+ * import express from 'express';
+ * import { createArcanaServer } from 'arcanajs/server';
+ *
+ * const app = express();
+ * const server = createArcanaServer(app, {
+ *   port: 3000,
+ *   viewsDir: 'src/views',
+ * });
+ *
+ * server.start();
+ * ```
+ */
+export function createArcanaServer(
+  app: Express,
+  config?: Partial<ArcanaJSConfig>
+): ArcanaJSServer {
+  const server = new ArcanaJSServer({ ...config });
+  return server;
+}

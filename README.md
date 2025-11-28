@@ -13,40 +13,25 @@ ArcanaJS is a modern React framework for building server-side rendered (SSR) app
 
 ## Quick Start
 
-### Create a new folder
-
-```bash
-mkdir my-app
-cd my-app
-```
-
 ### Initialize a New Project
 
-```bash
-npx arcanajs init
-```
-
-### Development
-
-Install dependencies:
-
-```bash
-npm install
-```
+````bash
+npx create-arcanajs-app
+````
 
 Start the development server:
 
-```bash
+````bash
 npm run dev
-```
+````
 
 Visit `http://localhost:3000` to see your application.
 
 ### Build for Production
 
-```bash
+````bash
 npm run build
-```
+````
 
 ### Start Production Server
 

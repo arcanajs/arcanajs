@@ -9,8 +9,9 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "module": "CommonJS",
-    "outDir": "./framework",
+    "outDir": "./dist",
     "rootDir": "./src",
+
     "declaration": true
   },
   "include": ["src/lib/**/*", "src/cli/**/*"]

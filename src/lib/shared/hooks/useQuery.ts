@@ -1,6 +1,7 @@
-import { useLocation } from "./useLocation";
+import useLocation from "./useLocation";
 
-export const useQuery = () => {
+const useQuery = () => {
   const { search } = useLocation();
   return new URLSearchParams(search);
 };
+export default useQuery;

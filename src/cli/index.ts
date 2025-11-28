@@ -1,8 +1,6 @@
 import { spawn } from "child_process";
-import fs from "fs";
 import path from "path";
 import webpack from "webpack";
-import { configFiles, errorPages, requiredDirs } from "./templates";
 import { createClientConfig, createServerConfig } from "./webpack.config";
 
 const args = process.argv.slice(2);
@@ -148,59 +146,6 @@ const dev = async () => {
   });
 };
 
-const init = () => {
-  console.log("Initializing ArcanaJS project with Tailwind CSS...");
-
-  const cwd = process.cwd();
-  const templatesDir = path.resolve(__dirname, "../templates");
-
-  // Create necessary directories
-  requiredDirs.forEach((dir) => {
-    const fullPath = path.resolve(cwd, dir);
-    if (!fs.existsSync(fullPath)) {
-      fs.mkdirSync(fullPath, { recursive: true });
-      console.log(`Created directory: ${dir}`);
-    }
-  });
-
-  // Copy configuration files
-  configFiles.forEach(({ src, dest }) => {
-    const srcPath = path.resolve(templatesDir, src);
-    const destPath = path.resolve(cwd, dest);
-
-    if (!fs.existsSync(destPath)) {
-      if (fs.existsSync(srcPath)) {
-        fs.copyFileSync(srcPath, destPath);
-        console.log(`Created: ${dest}`);
-      } else {
-        console.warn(`Template not found: ${src}`);
-      }
-    } else {
-      console.log(`Skipped: ${dest} (already exists)`);
-    }
-  });
-
-  // Create default error pages
-  errorPages.forEach((page) => {
-    const viewPath = path.resolve(cwd, `src/views/${page}`);
-    const templatePath = path.resolve(templatesDir, page);
-
-    if (!fs.existsSync(viewPath) && fs.existsSync(templatePath)) {
-      fs.copyFileSync(templatePath, viewPath);
-      console.log(`Created: src/views/${page}`);
-    }
-  });
-
-  console.log("\n✅ ArcanaJS project initialized successfully!");
-  console.log("\nNext steps:");
-  console.log("1. Run 'npm install' to install dependencies");
-  console.log("2. Run 'npm run dev' to start development");
-  console.log("3. Visit http://localhost:3000 to see your app");
-  console.log("4. Edit src/views/HomePage.tsx to customize your homepage");
-  console.log("5. Customize your theme in src/client/globals.css");
-  console.log("6. Add your Tailwind classes and enjoy!");
-};
-
 const start = () => {
   process.env.NODE_ENV = "production";
   const serverPath = path.resolve(process.cwd(), "dist/server.js");
@@ -214,9 +159,6 @@ const start = () => {
 };
 
 switch (command) {
-  case "init":
-    init();
-    break;
   case "build":
     build();
     break;

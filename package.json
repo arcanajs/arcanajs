@@ -5,30 +5,37 @@
     "email": "mohammed.bencheikh.dev@gmail.com",
     "url": "https://mohammedbencheikh.com/"
   },
-  "version": "2.6.0",
+  "version": "3.0.0",
   "description": "ArcanaJS Framework",
-  "main": "framework/lib/index.js",
-  "types": "framework/lib/index.d.ts",
+  "main": "./dist/arcanajs.js",
+  "types": "./dist/lib/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly && webpack --config webpack.config.ts && cp src/lib/global.d.ts dist/lib/"
+  },
   "exports": {
     ".": {
-      "types": "./framework/lib/index.d.ts",
-      "default": "./framework/lib/index.js"
-    },
-    "./server": {
-      "types": "./framework/lib/server.d.ts",
-      "default": "./framework/lib/server.js"
+      "types": "./dist/lib/index.d.ts",
+      "require": "./dist/arcanajs.js",
+      "import": "./dist/arcanajs.js",
+      "default": "./dist/arcanajs.js"
     },
     "./client": {
-      "types": "./framework/lib/client/index.d.ts",
-      "default": "./framework/lib/client/index.js"
+      "types": "./dist/lib/client/index.d.ts",
+      "require": "./dist/arcanajs.js",
+      "import": "./dist/arcanajs.js",
+      "default": "./dist/arcanajs.js"
+    },
+    "./server": {
+      "types": "./dist/lib/server/ArcanaJSServer.d.ts",
+      "require": "./dist/arcanajs.js",
+      "import": "./dist/arcanajs.js",
+      "default": "./dist/arcanajs.js"
     },
     "./types": {
-      "types": "./framework/lib/types.d.ts",
-      "default": "./framework/lib/types.js"
-    },
-    "./config": {
-      "types": "./framework/lib/config/index.d.ts",
-      "default": "./framework/lib/config/index.js"
+      "types": "./dist/lib/types.d.ts",
+      "require": "./dist/arcanajs.js",
+      "import": "./dist/arcanajs.js",
+      "default": "./dist/arcanajs.js"
     },
     "./package.json": "./package.json"
   },
@@ -36,12 +43,9 @@
     "arcanajs": "./bin/arcanajs.js"
   },
   "files": [
-    "framework",
+    "dist",
     "bin"
   ],
-  "scripts": {
-    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/ && cp -r src/templates framework/ && cp src/templates/arcanajs.config.ts framework/templates/ && echo '/// <reference path=\"./global.d.ts\" />' | cat - framework/lib/index.d.ts > temp && mv temp framework/lib/index.d.ts"
-  },
   "dependencies": {
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.23.0",

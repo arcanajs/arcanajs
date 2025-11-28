@@ -188,7 +188,18 @@ export const createClientConfig = (): webpack.Configuration => {
     plugins: [
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
-        template: path.resolve(__dirname, "../lib/server/default-index.html"),
+        templateContent: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--HEAD_CONTENT-->
+  </head>
+  <body>
+    <div id="root"><!--APP_CONTENT--></div>
+    <!--ARCANAJS_DATA_SCRIPT-->
+  </body>
+</html>`,
         filename: "index.html",
         inject: "body",
         minify: isProduction

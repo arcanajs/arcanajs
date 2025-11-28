@@ -1,20 +1,7 @@
-// ============================================================================
-// CSS Module Declarations
-// ============================================================================
-
-// Global CSS files
-declare module "*.css";
-
-// CSS Modules
-declare module "*.module.css" {
-  const classes: { readonly [key: string]: string };
-  export default classes;
-}
-
+/// <reference types="node" />
 // ============================================================================
 // Express Augmentation
 // ============================================================================
-
 declare global {
   var __non_webpack_require__: NodeJS.Require;
   namespace Express {
@@ -59,6 +46,17 @@ declare global {
         data?: string | object | null
       ): Response;
     }
+  }
+
+  // ============================================================================
+  // CSS Module Declarations
+  // ============================================================================
+  namespace NodeJS {
+    declare module "*.module.css" {
+      const classes: { readonly [key: string]: string };
+      export default classes;
+    }
+    declare module "*.css";
   }
 }
 

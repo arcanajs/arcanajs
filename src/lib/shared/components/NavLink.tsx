@@ -1,6 +1,6 @@
 import React from "react";
-import { useRouter } from "../hooks/useRouter";
-import { Link } from "./Link";
+import useRouter from "../hooks/useRouter";
+import Link from "./Link";
 
 interface NavLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string;
@@ -9,7 +9,7 @@ interface NavLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   prefetch?: boolean;
 }
 
-export const NavLink: React.FC<NavLinkProps> = ({
+const NavLink: React.FC<NavLinkProps> = ({
   href,
   activeClassName = "active",
   className = "",
@@ -37,3 +37,4 @@ export const NavLink: React.FC<NavLinkProps> = ({
     </Link>
   );
 };
+export default NavLink;

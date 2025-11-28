@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+export const defaultHtmlTemplate = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,4 +9,4 @@
     <div id="root"><!--APP_CONTENT--></div>
     <!--ARCANAJS_DATA_SCRIPT-->
   </body>
-</html>
+</html>`;

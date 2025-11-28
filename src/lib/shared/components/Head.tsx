@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useHead } from "../hooks/useHead";
 
-export const Head: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const Head: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const headManager = useHead();
 
   // Server-side: Push tags to context
@@ -94,3 +94,4 @@ export const Head: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return null;
 };
+export default Head;

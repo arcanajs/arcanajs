@@ -1,6 +1,6 @@
-import { useRouter } from "./useRouter";
+import  useRouter  from "./useRouter";
 
-export const useLocation = () => {
+const useLocation = () => {
   const { currentUrl } = useRouter();
   return {
     pathname: currentUrl,
@@ -8,3 +8,4 @@ export const useLocation = () => {
     hash: typeof window !== "undefined" ? window.location.hash : "",
   };
 };
+export default useLocation;

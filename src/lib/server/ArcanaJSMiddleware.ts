@@ -4,19 +4,9 @@ import React from "react";
 import { renderToString } from "react-dom/server";
 import { HeadContext, HeadManager } from "../shared/context/HeadContext";
 import { ArcanaJSApp } from "../shared/core/ArcanaJSApp";
+import { defaultHtmlTemplate } from "./DefaultTemplate";
 
-const DEFAULT_HTML_TEMPLATE = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!--HEAD_CONTENT-->
-  </head>
-  <body>
-    <div id="root"><!--APP_CONTENT--></div>
-    <!--ARCANAJS_DATA_SCRIPT-->
-  </body>
-</html>`;
+const DEFAULT_HTML_TEMPLATE = defaultHtmlTemplate;
 
 // Extend Express Response interface
 declare global {

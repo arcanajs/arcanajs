@@ -11,16 +11,15 @@ import { createArcanaJSMiddleware } from "./ArcanaJSMiddleware";
 import { createCsrfMiddleware } from "./CsrfMiddleware";
 import { createDynamicRouter } from "./DynamicRouter";
 import { responseHandler } from "./ResponseHandlerMiddleware";
-import { Router as ArcanaRouter } from "./Router";
 
 export interface ArcanaJSConfig<TDb = any> {
   port?: number | string;
   views?: Record<string, React.FC<any>>;
   viewsDir?: string;
   viewsContext?: any;
-  routes?: RequestHandler | RequestHandler[] | ArcanaRouter | ArcanaRouter[];
+  routes?: RequestHandler | RequestHandler[];
   /** API routes can be provided separately from web routes */
-  apiRoutes?: RequestHandler | RequestHandler[] | ArcanaRouter | ArcanaRouter[];
+  apiRoutes?: RequestHandler | RequestHandler[];
   /** Base path under which API routes will be mounted (default: '/api') */
   apiBase?: string;
   staticDir?: string;
@@ -45,7 +44,7 @@ declare global {
   }
 }
 
-export class ArcanaJSServer<TDb = any> {
+class ArcanaJSServer<TDb = any> {
   public app: Express;
   private config: ArcanaJSConfig<TDb>;
   private serverInstance?: import("http").Server;
@@ -522,3 +521,4 @@ export class ArcanaJSServer<TDb = any> {
     }
   }
 }
+export default ArcanaJSServer;

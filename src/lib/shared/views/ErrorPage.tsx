@@ -1,8 +1,7 @@
-import { Body } from "../components/Body";
-import { Head } from "../components/Head";
-import { Link } from "../components/Link";
-import { Page } from "../components/Page";
-
+import Body from "../components/Body";
+import Head from "../components/Head";
+import Link from "../components/Link";
+import Page from "../components/Page";
 interface ErrorPageProps {
   message?: string;
   statusCode?: number;
