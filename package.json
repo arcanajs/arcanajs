@@ -5,7 +5,7 @@
     "email": "mohammed.bencheikh.dev@gmail.com",
     "url": "https://mohammedbencheikh.com/"
   },
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "ArcanaJS Framework",
   "main": "./dist/arcanajs.js",
   "types": "./dist/lib/index.d.ts",
@@ -14,9 +14,22 @@
   },
   "exports": {
     ".": {
+      "browser": {
+        "types": "./dist/lib/index.client.d.ts",
+        "default": "./dist/arcanajs.client.js"
+      },
+      "node": {
+        "types": "./dist/lib/index.d.ts",
+        "default": "./dist/arcanajs.js"
+      },
+      "default": "./dist/arcanajs.js"
+    },
+    "./client": {
+      "types": "./dist/lib/index.client.d.ts",
+      "default": "./dist/arcanajs.client.js"
+    },
+    "./server": {
       "types": "./dist/lib/index.d.ts",
-      "require": "./dist/arcanajs.js",
-      "import": "./dist/arcanajs.js",
       "default": "./dist/arcanajs.js"
     }
   },

@@ -9,6 +9,7 @@ const config: webpack.Configuration = {
   target: "node",
   entry: {
     arcanajs: path.resolve(cwd, "src/lib/index.ts"),
+    "arcanajs.client": path.resolve(cwd, "src/lib/index.client.ts"),
     "cli/index": path.resolve(cwd, "src/cli/index.ts"),
   },
   output: {
