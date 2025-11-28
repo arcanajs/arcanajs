@@ -84,6 +84,8 @@ export const ArcanaJSApp: React.FC<ArcanaJSAppProps> = ({
     try {
       const response = await fetch(newUrl, {
         headers: { "X-ArcanaJS-Request": "true" },
+        // prevent caching in dev navigation
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -100,6 +102,16 @@ export const ArcanaJSApp: React.FC<ArcanaJSAppProps> = ({
         throw new Error(
           `Navigation failed: ${response.status} ${response.statusText}`
         );
+      }
+
+      // Ensure server returned JSON. If not, fallback to full navigation reload
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        // The server returned HTML (or something else) instead of JSON.
+        // Do a full reload so the browser displays the correct page instead
+        // of trying to parse HTML as JSON (which causes the SyntaxError).
+        window.location.href = newUrl;
+        return;
       }
 
       const json = await response.json();

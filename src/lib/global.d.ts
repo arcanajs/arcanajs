@@ -18,6 +18,13 @@ declare module "*.module.css" {
 declare global {
   var __non_webpack_require__: NodeJS.Require;
   namespace Express {
+    interface Request {
+      /**
+       * Normalized DB object optionally attached to the request by ArcanaJSServer.
+       * It may be either the raw client, or an object like `{ client, db, close }`.
+       */
+      db?: any;
+    }
     interface Response {
       /**
        * Render a page component with data

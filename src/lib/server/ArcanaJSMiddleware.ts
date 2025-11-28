@@ -84,7 +84,7 @@ export const createArcanaJSMiddleware = (options: ArcanaJSOptions) => {
     ) => {
       const csrfToken = res.locals.csrfToken;
 
-      if (req.headers["X-ArcanaJS-Request"] || req.query.format === "json") {
+      if (req.get("X-ArcanaJS-Request") || req.query.format === "json") {
         return res.json({ page, data, params, csrfToken });
       }
       try {

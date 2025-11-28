@@ -1,33 +1,54 @@
 export const configFiles = [
+  // project root files
   { src: "package.json", dest: "package.json" },
   { src: "tsconfig.json", dest: "tsconfig.json" },
   { src: "arcanajs.config.ts", dest: "arcanajs.config.ts" },
   { src: "postcss.config.js", dest: "postcss.config.js" },
-  { src: "arcanajs.d.ts", dest: "src/arcanajs.d.ts" },
-  { src: "globals.css", dest: "src/client/globals.css" },
-  { src: "client-index.tsx", dest: "src/client/index.tsx" },
-  { src: "server-index.ts", dest: "src/server/index.ts" },
-  { src: "server-routes-web.ts", dest: "src/server/routes/web.ts" },
+
+  // types
+  { src: "src/arcanajs.d.ts", dest: "src/arcanajs.d.ts" },
+
+  // client
+  { src: "src/client/globals.css", dest: "src/client/globals.css" },
+  { src: "src/client/index.tsx", dest: "src/client/index.tsx" },
+
+  // server
+  { src: "src/server/index.ts", dest: "src/server/index.ts" },
+  { src: "src/server/routes/web.ts", dest: "src/server/routes/web.ts" },
+  { src: "src/server/routes/api.ts", dest: "src/server/routes/api.ts" },
   {
-    src: "server-controller-home.ts",
+    src: "src/server/controllers/HomeController.ts",
     dest: "src/server/controllers/HomeController.ts",
   },
   {
-    src: "HomePage.tsx",
-    dest: "src/views/HomePage.tsx",
+    src: "src/server/controllers/UsersController.ts",
+    dest: "src/server/controllers/UsersController.ts",
   },
+
+  // views
+  { src: "src/views/HomePage.tsx", dest: "src/views/HomePage.tsx" },
+  { src: "src/views/NotFoundPage.tsx", dest: "src/views/NotFoundPage.tsx" },
+  { src: "src/views/ErrorPage.tsx", dest: "src/views/ErrorPage.tsx" },
+
+  //public
   {
-    src: "arcanajs.png",
+    src: "public/arcanajs.png",
     dest: "public/arcanajs.png",
   },
   {
-    src: "arcanajs.svg",
+    src: "public/arcanajs.svg",
     dest: "public/arcanajs.svg",
   },
   {
-    src: "favicon.ico",
+    src: "public/favicon.ico",
     dest: "public/favicon.ico",
   },
+
+  // optional DB templates
+  { src: "src/db/mongo.ts", dest: "src/db/mongo.ts" },
+  { src: "src/db/mongoose.ts", dest: "src/db/mongoose.ts" },
+  { src: "src/db/mysql.ts", dest: "src/db/mysql.ts" },
+  { src: "src/db/postgres.ts", dest: "src/db/postgres.ts" },
 ];
 
 export const errorPages = ["NotFoundPage.tsx", "ErrorPage.tsx"];
