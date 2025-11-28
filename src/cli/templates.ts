@@ -7,6 +7,7 @@ export const configFiles = [
 
   // types
   { src: "src/arcanajs.d.ts", dest: "src/arcanajs.d.ts" },
+  { src: "src/types/HomePageData.ts", dest: "src/types/HomePageData.ts" },
 
   // client
   { src: "src/client/globals.css", dest: "src/client/globals.css" },
@@ -59,6 +60,7 @@ export const requiredDirs = [
   "src/client",
   "src/db",
   "src/server",
+  "src/types",
   "src/server/routes",
   "src/server/controllers",
   "src/views",

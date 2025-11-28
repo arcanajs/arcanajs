@@ -12,17 +12,19 @@ export const Link: React.FC<LinkProps> = ({
   prefetch = false,
   ...props
 }) => {
-  const { navigateTo } = useRouter();
+  const { navigateTo, navigateToAsync } = useRouter();
 
   const isExternal = /^https?:\/\//.test(href);
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    if (!isExternal) {
-      navigateTo(href);
-    } else {
+    if (isExternal) {
       // Open external links in a new tab
       window.open(href, "_blank", "noopener,noreferrer");
+    } else if (navigateToAsync) {
+      await navigateToAsync(href);
+    } else {
+      navigateTo(href);
     }
   };
 

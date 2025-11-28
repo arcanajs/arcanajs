@@ -2,40 +2,63 @@ import React, { useEffect, useState } from "react";
 import { Page } from "../components/Page";
 import { RouterProvider } from "../context/RouterContext";
 
-export interface ArcanaJSAppProps {
+export interface ArcanaJSAppProps<
+  TData = any,
+  TParams extends Record<string, string> = Record<string, string>
+> {
   initialPage: string;
-  initialData: any;
-  initialParams?: Record<string, string>;
+  initialData: TData;
+  initialParams?: TParams;
   initialUrl?: string;
   csrfToken?: string;
-  views: Record<string, React.FC<any>>;
+  views: Record<
+    string,
+    React.ComponentType<{
+      data: TData;
+      navigateTo: (url: string) => Promise<void>;
+      params: TParams;
+    }>
+  >;
   layout?: React.FC<{ children: React.ReactNode }>;
   onNavigate?: (url: string) => void;
+  /** Maximum number of entries to keep in the navigation cache */
+  cacheLimit?: number;
 }
 
-export const ArcanaJSApp: React.FC<ArcanaJSAppProps> = ({
-  initialPage,
-  initialData,
-  initialParams = {},
-  initialUrl,
-  csrfToken,
-  views,
-  layout: Layout,
-  onNavigate,
-}) => {
-  const [page, setPage] = useState(initialPage);
-  const [data, setData] = useState(initialData);
-  const [params, setParams] = useState(initialParams);
-  const [url, setUrl] = useState(
+export const ArcanaJSApp = <
+  TData = any,
+  TParams extends Record<string, string> = Record<string, string>
+>(
+  props: ArcanaJSAppProps<TData, TParams>
+) => {
+  const {
+    initialPage,
+    initialData,
+    initialParams = {} as TParams,
+    initialUrl,
+    csrfToken,
+    views,
+    layout: Layout,
+    onNavigate,
+    cacheLimit = 50,
+  } = props;
+
+  const [page, setPage] = useState<string>(initialPage);
+  const [data, setData] = useState<TData>(initialData);
+  const [params, setParams] = useState<TParams>(initialParams);
+  const [url, setUrl] = useState<string>(
     initialUrl ||
       (typeof window !== "undefined" ? window.location.pathname : "/")
   );
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Navigation cache to store previously visited pages
+  // Navigation cache to store previously visited pages (LRU via Map ordering)
   const navigationCache = React.useRef(
-    new Map<string, { page: string; data: any; params: any }>()
+    new Map<string, { page: string; data: TData; params: TParams }>()
   );
+
+  // Abort controller for in-flight navigation fetch
+  const currentAbort = React.useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !window.history.state) {
@@ -45,47 +68,77 @@ export const ArcanaJSApp: React.FC<ArcanaJSAppProps> = ({
         window.location.href
       );
     }
+
     const handlePopState = (event: PopStateEvent) => {
       if (event.state) {
         setPage(event.state.page);
         setData(event.state.data);
-        setParams(event.state.params || {});
+        setParams(event.state.params || ({} as TParams));
         setUrl(window.location.pathname);
       } else {
-        window.location.reload();
+        // Try to fetch the page state instead of hard reload
+        const path = window.location.pathname;
+        void navigateTo(path).catch(() => {
+          window.location.reload();
+        });
       }
     };
+
     window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      currentAbort.current?.abort();
+    };
   }, []);
 
-  const navigateTo = async (newUrl: string) => {
+  const setCache = (
+    key: string,
+    value: { page: string; data: TData; params: TParams }
+  ) => {
+    const map = navigationCache.current;
+    if (map.has(key)) map.delete(key);
+    map.set(key, value);
+    if (map.size > cacheLimit) {
+      const firstKey = map.keys().next().value;
+      if (firstKey !== undefined) map.delete(firstKey);
+    }
+  };
+
+  const navigateTo = async (newUrl: string): Promise<void> => {
     // Check cache first for instant navigation
-    if (navigationCache.current.has(newUrl)) {
-      const cached = navigationCache.current.get(newUrl)!;
+    const map = navigationCache.current;
+    if (map.has(newUrl)) {
+      const cached = map.get(newUrl)!;
       setPage(cached.page);
       setData(cached.data);
-      setParams(cached.params || {});
+      setParams(cached.params || ({} as TParams));
       setUrl(newUrl);
       window.history.pushState(cached, "", newUrl);
 
-      // Scroll to top
       if (typeof window !== "undefined") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        try {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch {
+          // ignore in non-browser env or when smooth not supported
+        }
       }
 
-      if (onNavigate) {
-        onNavigate(newUrl);
-      }
+      if (onNavigate) onNavigate(newUrl);
       return;
     }
 
     setIsNavigating(true);
+
+    // Abort previous request
+    currentAbort.current?.abort();
+    const controller = new AbortController();
+    currentAbort.current = controller;
+
     try {
       const response = await fetch(newUrl, {
         headers: { "X-ArcanaJS-Request": "true" },
-        // prevent caching in dev navigation
         cache: "no-store",
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -104,57 +157,63 @@ export const ArcanaJSApp: React.FC<ArcanaJSAppProps> = ({
         );
       }
 
-      // Ensure server returned JSON. If not, fallback to full navigation reload
       const contentType = response.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
-        // The server returned HTML (or something else) instead of JSON.
-        // Do a full reload so the browser displays the correct page instead
-        // of trying to parse HTML as JSON (which causes the SyntaxError).
         window.location.href = newUrl;
         return;
       }
 
       const json = await response.json();
 
-      // Cache the navigation result
-      navigationCache.current.set(newUrl, {
-        page: json.page,
-        data: json.data,
-        params: json.params,
-      });
+      const payload = {
+        page: json.page as string,
+        data: json.data as TData,
+        params: (json.params || {}) as TParams,
+      };
+      setCache(newUrl, payload);
 
       window.history.pushState(
-        { page: json.page, data: json.data, params: json.params },
+        { page: payload.page, data: payload.data, params: payload.params },
         "",
         newUrl
       );
 
-      setPage(json.page);
-      setData(json.data);
-      setParams(json.params || {});
+      setPage(payload.page);
+      setData(payload.data);
+      setParams(payload.params || ({} as TParams));
       setUrl(newUrl);
 
-      // Scroll to top after navigation
       if (typeof window !== "undefined") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        try {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch {
+          // ignore
+        }
       }
 
-      if (onNavigate) {
-        onNavigate(newUrl);
-      }
-    } catch (error) {
-      console.error("Navigation failed", error);
+      if (onNavigate) onNavigate(newUrl);
+    } catch (err: any) {
+      if (err?.name === "AbortError") return;
+      console.error("Navigation failed", err);
+      throw err;
     } finally {
+      // Clear abort controller if it's still the one we set
+      if (currentAbort.current === controller) currentAbort.current = null;
       setIsNavigating(false);
     }
   };
 
   const renderPage = () => {
-    const Component =
-      views[page] || views["NotFoundPage"] || (() => <div>404 Not Found</div>);
+    const Component = (views[page] ||
+      views["NotFoundPage"] ||
+      (() => <div>404 Not Found</div>)) as React.ComponentType<{
+      data: TData;
+      navigateTo: (url: string) => Promise<void>;
+      params: TParams;
+    }>;
+
     return (
       <Page data={data}>
-        {/* @ts-ignore */}
         <Component data={data} navigateTo={navigateTo} params={params} />
       </Page>
     );
@@ -165,7 +224,12 @@ export const ArcanaJSApp: React.FC<ArcanaJSAppProps> = ({
   return (
     <RouterProvider
       value={{
-        navigateTo,
+        // keep backward-compatible wrapper that doesn't return a promise
+        navigateTo: (...args: any[]) => {
+          void navigateTo(args[0]);
+        },
+        // new async API consumers can use `navigateToAsync` when available
+        navigateToAsync: navigateTo,
         currentPage: page,
         currentUrl: url,
         params,

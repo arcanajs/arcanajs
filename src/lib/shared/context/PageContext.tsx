@@ -1,3 +1,7 @@
 import { createSingletonContext } from "../utils/createSingletonContext";
 
-export const PageContext = createSingletonContext<any>("PageContext", null);
+// PageContext holds the page data (may be null before hydration).
+export const PageContext = createSingletonContext<any | null>(
+  "PageContext",
+  null
+);

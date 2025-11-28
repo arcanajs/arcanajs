@@ -1,6 +1,9 @@
-import { Body, Head, Page } from "arcanajs";
+import { Body, Head, Page, usePage } from "arcanajs";
+import type { HomePageData } from "../types/HomePageData";
 
 export default function HomePage() {
+  const pageData = usePage<HomePageData | null>();
+
   return (
     <Page>
       <Head>
@@ -83,6 +86,28 @@ export default function HomePage() {
                     Tailwind CSS v4 support. Build fast, beautiful applications
                     with zero configuration.
                   </p>
+                  {pageData && (
+                    <div className="text-sm text-gray-400 mb-6">
+                      <div className="font-semibold text-white">
+                        {pageData.welcome ?? "Welcome"}
+                      </div>
+                      <div className="text-gray-400 text-sm">
+                        {pageData.subtitle}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Server time: {pageData.time}
+                      </div>
+                      {Array.isArray(pageData.posts) && (
+                        <ul className="mt-3 text-left list-disc list-inside text-gray-300">
+                          {pageData.posts.map((p) => (
+                            <li key={p.id} className="truncate">
+                              {p.title}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <button className="btn-primary px-8 py-3.5 text-lg font-semibold rounded-xl inline-flex items-center justify-center gap-2">
                       Get Started
