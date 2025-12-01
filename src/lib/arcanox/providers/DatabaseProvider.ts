@@ -1,5 +1,4 @@
 import { Container } from "../../server/Container";
-// import { DatabaseAdapter } from "../databaseAdapter";
 import { Model } from "../Model";
 import { Schema } from "../schema";
 import { DatabaseAdapter } from "../types";
@@ -29,7 +28,7 @@ export class DatabaseProvider {
       }
     })();
 
-    container.singleton("DatabaseAdapter", adapter);
+    container.singleton("DatabaseAdapter", () => adapter);
 
     container.singleton("DBConnection", async () => {
       const conn = await adapter.connect(databaseConfig);
