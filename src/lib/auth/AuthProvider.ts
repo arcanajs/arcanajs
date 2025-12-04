@@ -1,69 +1,62 @@
-import fs from "fs";
-import path from "path";
 import MiddlewareBinder from "../server/MiddlewareBinder";
 import { ServiceProvider } from "../server/support/ServiceProvider";
-import { dynamicRequire } from "../server/utils/dynamicRequire";
 import { JWTService } from "./JWTService";
 import { AuthMiddleware } from "./middleware/AuthMiddleware";
 import { SessionManager } from "./SessionManager";
 import { AuthConfig } from "./types";
 import { TokenBlacklist } from "./utils/TokenBlacklist";
 
+/**
+ * Authentication Service Provider
+ *
+ * Registers and bootstraps the authentication system
+ */
 export class AuthProvider extends ServiceProvider {
   async register() {
+    console.log("⚙️  AuthProvider: Initializing...");
+
+    // Get config from container (loaded by ArcanaJSServer)
     let authConfig: AuthConfig | undefined;
 
-    // Try multiple possible config paths
-    const possiblePaths = [
-      path.resolve(process.cwd(), "src/config/auth.ts"),
-      path.resolve(process.cwd(), "src/config/auth.js"),
-    ];
-
-    let configLoaded = false;
-    for (const configPath of possiblePaths) {
-      // Check if file exists before trying to load it
-      if (!fs.existsSync(configPath)) {
-        continue;
-      }
-
-      try {
-        const required = dynamicRequire(configPath);
-        authConfig = required.default;
-        configLoaded = true;
-        break;
-      } catch (err) {
-        // Try next path
-        console.warn(`Failed to load auth config from ${configPath}:`, err);
-        continue;
-      }
-    }
-
-    if (!configLoaded) {
-      console.warn("No auth config found. Skipping auth setup.");
-      console.warn("Tried paths:", possiblePaths);
+    try {
+      authConfig = this.app.container.resolve<AuthConfig>("AuthConfig");
+      console.log("✓ AuthProvider: Configuration loaded successfully");
+    } catch (err) {
+      console.warn("⚠ AuthProvider: No configuration found - Skipping setup");
       return;
     }
 
-    // At this point, authConfig is guaranteed to be defined
+    try {
+      // Initialize JWT Service
+      JWTService.init(authConfig.jwt);
+      console.log("✓ AuthProvider: JWT service initialized");
 
-    // Initialize Services
-    JWTService.init(authConfig!.jwt);
-    await TokenBlacklist.init(
-      authConfig!.tokenBlacklist,
-      authConfig!.session.redis
-    );
+      // Initialize Token Blacklist
+      await TokenBlacklist.init(
+        authConfig.tokenBlacklist,
+        authConfig.session.redis
+      );
+      console.log("✓ AuthProvider: Token blacklist initialized");
 
-    // Register Session Middleware
-    this.app.app.use(SessionManager.createMiddleware(authConfig!.session));
+      // Register Session Middleware
+      this.app.app.use(SessionManager.createMiddleware(authConfig.session));
+      console.log("✓ AuthProvider: Session middleware registered");
 
-    // Register Auth Middleware
-    this.app.app.use(MiddlewareBinder.handle(AuthMiddleware));
+      // Register Auth Middleware
+      this.app.app.use(MiddlewareBinder.handle(AuthMiddleware));
+      console.log("✓ AuthProvider: Auth middleware registered");
 
-    // Register in container
-    this.app.container.singleton("AuthConfig", () => authConfig!);
+      // Register in container
+      this.app.container.singleton("AuthConfig", () => authConfig!);
+
+      console.log("✅ AuthProvider: Ready");
+    } catch (error) {
+      console.error("✗ AuthProvider: Initialization failed", error);
+      throw error;
+    }
   }
 
   async boot() {
-    //
+    // Boot logic here if needed
   }
 }

@@ -31,6 +31,12 @@ export interface ArcanaJSConfig {
   layout?: React.FC<any>;
   /** Automatically register SIGINT/SIGTERM handlers to call stop(). Default: true */
   autoHandleSignals?: boolean;
+  /** Auth configuration */
+  auth?: any;
+  /** Mail configuration */
+  mail?: any;
+  /** Database configuration */
+  database?: any;
   /** Service providers to load */
   providers?: (new (app: ArcanaJSServer) => ServiceProvider)[];
 }
@@ -96,32 +102,57 @@ class ArcanaJSServer {
   private _sigtermHandler?: () => void;
   private providers: ServiceProvider[] = [];
 
+  private initialized = false;
+
   constructor(config: ArcanaJSConfig) {
     this.config = config;
     this.app = express();
     this.container = Container.getInstance();
-    this.initialize();
-    this.registerProviders();
-    this.bootProviders();
+    this.setupMiddleware();
   }
 
-  private registerProviders() {
-    if (this.config.providers) {
-      this.config.providers.forEach((ProviderClass) => {
-        const provider = new ProviderClass(this);
-        provider.register();
-        this.providers.push(provider);
-      });
+  private async initializeAsync() {
+    if (this.initialized) return;
+
+    await this.loadConfigurations();
+    await this.registerProviders();
+    await this.bootProviders();
+
+    this.initialized = true;
+  }
+
+  private async loadConfigurations() {
+    // Register configs passed via constructor
+    if (this.config.auth) {
+      this.container.singleton("AuthConfig", () => this.config.auth);
+    }
+
+    if (this.config.mail) {
+      this.container.singleton("MailConfig", () => this.config.mail);
+    }
+
+    if (this.config.database) {
+      this.container.singleton("DatabaseConfig", () => this.config.database);
     }
   }
 
-  private bootProviders() {
-    this.providers.forEach((provider) => {
-      provider.boot();
-    });
+  private async registerProviders() {
+    if (this.config.providers) {
+      for (const ProviderClass of this.config.providers) {
+        const provider = new ProviderClass(this);
+        await provider.register();
+        this.providers.push(provider);
+      }
+    }
   }
 
-  private initialize() {
+  private async bootProviders() {
+    for (const provider of this.providers) {
+      await provider.boot();
+    }
+  }
+
+  private setupMiddleware() {
     const {
       staticDir = "public",
       distDir = "dist/public",
@@ -317,7 +348,10 @@ class ArcanaJSServer {
     return views;
   }
 
-  public start() {
+  public async start() {
+    // Initialize async components first
+    await this.initializeAsync();
+
     const PORT = this.config.port || process.env.PORT || 3000;
 
     // Prevent multiple server instances
