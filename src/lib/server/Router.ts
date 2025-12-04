@@ -1,11 +1,11 @@
-import express, { Router as ExpressRouter, RequestHandler } from "express";
+import express, { Router as ExpressRouter, RequestHandler, Router } from "express";
 import ControllerBinder from "./ControllerBinder";
 import MiddlewareBinder from "./MiddlewareBinder";
 
 /**
- * Provides Routing syntax for defining routes with prefixes, middlewares, and groups
+ * Provides Routing syntax for defining routes with prefixes, middlewares, and groups for ArcanaJS Framework
  */
-export class Router {
+export class ArcanaJSRouter {
   private router: ExpressRouter;
   private middlewareStack: RequestHandler[];
   private prefixStack: string[];
@@ -17,16 +17,9 @@ export class Router {
   }
 
   /**
-   * Create a new router instance
-   */
-  static create(): Router {
-    return new Router();
-  }
-
-  /**
    * Add middleware to the current stack
    */
-  middleware(...middleware: any[]): Router {
+  middleware(...middleware: any[]): ArcanaJSRouter {
     const newRouter = this._clone();
     const resolvedMiddlewares = middleware.map((m) =>
       this._resolveMiddleware(m)
@@ -41,7 +34,7 @@ export class Router {
   /**
    * Add prefix to the current stack
    */
-  prefix(prefix: string): Router {
+  prefix(prefix: string): ArcanaJSRouter {
     const newRouter = this._clone();
     newRouter.prefixStack = [
       ...this.prefixStack,
@@ -53,7 +46,7 @@ export class Router {
   /**
    * Create a route group
    */
-  group(callback: (router: Router) => void): Router {
+  group(callback: (router: ArcanaJSRouter) => void): ArcanaJSRouter {
     callback(this);
     return this;
   }
@@ -61,7 +54,7 @@ export class Router {
   /**
    * Define a GET route
    */
-  get(path: string, ...args: any[]): Router {
+  get(path: string, ...args: any[]): ArcanaJSRouter {
     const action = args.pop();
     const middlewares = args;
     return this._addRoute("get", path, action, middlewares);
@@ -70,7 +63,7 @@ export class Router {
   /**
    * Define a POST route
    */
-  post(path: string, ...args: any[]): Router {
+  post(path: string, ...args: any[]): ArcanaJSRouter {
     const action = args.pop();
     const middlewares = args;
     return this._addRoute("post", path, action, middlewares);
@@ -79,7 +72,7 @@ export class Router {
   /**
    * Define a PUT route
    */
-  put(path: string, ...args: any[]): Router {
+  put(path: string, ...args: any[]): ArcanaJSRouter {
     const action = args.pop();
     const middlewares = args;
     return this._addRoute("put", path, action, middlewares);
@@ -88,7 +81,7 @@ export class Router {
   /**
    * Define a DELETE route
    */
-  delete(path: string, ...args: any[]): Router {
+  delete(path: string, ...args: any[]): ArcanaJSRouter {
     const action = args.pop();
     const middlewares = args;
     return this._addRoute("delete", path, action, middlewares);
@@ -97,7 +90,7 @@ export class Router {
   /**
    * Define a PATCH route
    */
-  patch(path: string, ...args: any[]): Router {
+  patch(path: string, ...args: any[]): ArcanaJSRouter {
     const action = args.pop();
     const middlewares = args;
     return this._addRoute("patch", path, action, middlewares);
@@ -106,7 +99,7 @@ export class Router {
   /**
    * Define an OPTIONS route
    */
-  options(path: string, ...args: any[]): Router {
+  options(path: string, ...args: any[]): ArcanaJSRouter {
     const action = args.pop();
     const middlewares = args;
     return this._addRoute("options", path, action, middlewares);
@@ -116,7 +109,7 @@ export class Router {
    * Define a resource route
    * Registers index, create, store, show, edit, update, destroy routes
    */
-  resource(path: string, controller: any): Router {
+  resource(path: string, controller: any): ArcanaJSRouter {
     this.get(path, controller, "index");
     this.get(`${path}/create`, controller, "create");
     this.post(path, controller, "store");
@@ -136,17 +129,10 @@ export class Router {
   }
 
   /**
-   * Mount this router to an Express app or router
-   */
-  mount(app: express.Application | ExpressRouter, basePath = "/"): void {
-    (app as any).use(basePath, this.router);
-  }
-
-  /**
    * Clone the current router instance
    */
-  private _clone(): Router {
-    const newRouter = new Router();
+  private _clone(): ArcanaJSRouter {
+    const newRouter = new ArcanaJSRouter();
     newRouter.router = this.router;
     newRouter.middlewareStack = [...this.middlewareStack];
     newRouter.prefixStack = [...this.prefixStack];
@@ -161,7 +147,7 @@ export class Router {
     path: string,
     action: any,
     routeMiddlewares: any[] = []
-  ): Router {
+  ): ArcanaJSRouter {
     const fullPath = this._buildPath(path);
     const handler = this._buildHandler(action);
     const flatMiddlewares = routeMiddlewares.flat(Infinity);
@@ -244,58 +230,62 @@ export class Router {
  * Static Route class for ArcanaJS Routing
  */
 export class Route {
-  private static _router = new Router();
+  private static _router = new ArcanaJSRouter();
 
-  static create(): Router {
-    return Router.create();
+  static middleware(...middleware: any[]): typeof Route {
+    this._router = this._router.middleware(...middleware);
+    return this;
   }
 
-  static middleware(...middleware: any[]): Router {
-    return this._router.middleware(...middleware);
+  static prefix(prefix: string): typeof Route {
+    this._router = this._router.prefix(prefix);
+    return this;
   }
 
-  static prefix(prefix: string): Router {
-    return this._router.prefix(prefix);
+  static group(callback: (router: ArcanaJSRouter) => void): typeof Route {
+    this._router.group(callback);
+    return this;
   }
 
-  static group(callback: (router: Router) => void): Router {
-    return this._router.group(callback);
+  static get(path: string, ...args: any[]): typeof Route {
+    this._router.get(path, ...args);
+    return this;
   }
 
-  static get(path: string, ...args: any[]): Router {
-    return this._router.get(path, ...args);
+  static post(path: string, ...args: any[]): typeof Route {
+    this._router.post(path, ...args);
+    return this;
   }
 
-  static post(path: string, ...args: any[]): Router {
-    return this._router.post(path, ...args);
+  static put(path: string, ...args: any[]): typeof Route {
+    this._router.put(path, ...args);
+    return this;
   }
 
-  static put(path: string, ...args: any[]): Router {
-    return this._router.put(path, ...args);
+  static delete(path: string, ...args: any[]): typeof Route {
+    this._router.delete(path, ...args);
+    return this;
   }
 
-  static delete(path: string, ...args: any[]): Router {
-    return this._router.delete(path, ...args);
+  static patch(path: string, ...args: any[]): typeof Route {
+    this._router.patch(path, ...args);
+    return this;
   }
 
-  static patch(path: string, ...args: any[]): Router {
-    return this._router.patch(path, ...args);
+  static options(path: string, ...args: any[]): typeof Route {
+    this._router.options(path, ...args);
+    return this;
   }
 
-  static options(path: string, ...args: any[]): Router {
-    return this._router.options(path, ...args);
+  static resource(path: string, controller: any): typeof Route {
+    this._router.resource(path, controller);
+    return this;
   }
 
   static getRouter(): ExpressRouter {
-    return this._router.getRouter();
-  }
-
-  static mount(app: express.Application, basePath = "/"): void {
-    return this._router.mount(app, basePath);
-  }
-
-  static reset(): void {
-    this._router = new Router();
+    const router = this._router.getRouter();
+    this._router = new ArcanaJSRouter(); // Reset for next use
+    return router;
   }
 }
 
