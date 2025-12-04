@@ -4,7 +4,7 @@ import { writeFile } from "../../utils/writeFile";
 const makeSeeder = async (name: string) => {
   const content = `import { Seeder } from 'arcanajs/arcanox'
 
-export class ${toPascalCase(name)} extends Seeder {
+class ${toPascalCase(name)} extends Seeder {
   async run() {
     //
   }

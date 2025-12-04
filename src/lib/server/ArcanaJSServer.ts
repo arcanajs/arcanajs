@@ -11,7 +11,7 @@ import { createArcanaJSMiddleware } from "./ArcanaJSMiddleware";
 import { createCsrfMiddleware } from "./CsrfMiddleware";
 import { createDynamicRouter } from "./DynamicRouter";
 import { responseHandler } from "./ResponseHandlerMiddleware";
-import { dynamicRequire } from "./utils/dynamicRequire";
+import { dynamicRequireSync } from "./utils/dynamicRequire";
 
 import { ServiceProvider } from "./support/ServiceProvider";
 
@@ -298,13 +298,13 @@ class ArcanaJSServer {
             // Register ts-node if needed
             if (file.endsWith(".tsx") || file.endsWith(".ts")) {
               try {
-                dynamicRequire("ts-node/register");
+                dynamicRequireSync("ts-node/register");
               } catch (e) {
                 // Ignore
               }
             }
 
-            const pageModule = dynamicRequire(fullPath);
+            const pageModule = dynamicRequireSync(fullPath);
             views[viewName] = pageModule.default || pageModule;
           } catch (error) {
             console.error(`Failed to load view ${viewName}:`, error);
@@ -319,26 +319,51 @@ class ArcanaJSServer {
 
   public start() {
     const PORT = this.config.port || process.env.PORT || 3000;
+
+    // Prevent multiple server instances
+    if (this.serverInstance) {
+      console.warn(
+        "Server is already running. Call stop() before starting again."
+      );
+      return;
+    }
+
     this.serverInstance = this.app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
+      console.log(`✓ Server is running on http://localhost:${PORT}`);
+    });
+
+    // Handle server errors
+    this.serverInstance.on("error", (error: any) => {
+      if (error.code === "EADDRINUSE") {
+        console.error(`✗ Port ${PORT} is already in use`);
+        process.exit(1);
+      } else {
+        console.error("✗ Server error:", error);
+      }
     });
 
     // Optionally register process signal handlers per-instance to gracefully shutdown
     const autoHandle = this.config.autoHandleSignals !== false;
     if (autoHandle) {
-      const shutdown = async () => {
+      const shutdown = async (signal: string) => {
+        console.log(`\n⚠ Received ${signal}, shutting down gracefully...`);
         try {
           await this.stop();
+          console.log("✓ Shutdown complete");
           process.exit(0);
         } catch (err) {
-          console.error("Error during shutdown:", err);
+          console.error("✗ Error during shutdown:", err);
           process.exit(1);
         }
       };
-      this._sigintHandler = shutdown;
-      this._sigtermHandler = shutdown;
+
+      this._sigintHandler = () => shutdown("SIGINT");
+      this._sigtermHandler = () => shutdown("SIGTERM");
+
       process.on("SIGINT", this._sigintHandler);
       process.on("SIGTERM", this._sigtermHandler);
+
+      console.log("✓ Signal handlers registered (Ctrl+C to stop)");
     }
   }
 
@@ -348,26 +373,36 @@ class ArcanaJSServer {
   public async stop(): Promise<void> {
     // Close HTTP server
     if (this.serverInstance) {
+      console.log("⏳ Stopping HTTP server...");
       await new Promise<void>((resolve, reject) => {
         this.serverInstance!.close((err) => {
-          if (err) return reject(err);
+          if (err) {
+            console.error("✗ Error closing HTTP server:", err);
+            return reject(err);
+          }
           resolve();
         });
       });
       this.serverInstance = undefined;
-      console.log("HTTP server stopped");
+      console.log("✓ HTTP server stopped");
+    } else {
+      console.log("ℹ HTTP server is not running");
     }
 
     // Shutdown all providers
-    for (const provider of this.providers) {
-      if (provider.shutdown) {
-        try {
-          await provider.shutdown();
-        } catch (err) {
-          console.error(
-            `Error shutting down provider ${provider.constructor.name}:`,
-            err
-          );
+    if (this.providers.length > 0) {
+      console.log("⏳ Shutting down providers...");
+      for (const provider of this.providers) {
+        if (provider.shutdown) {
+          try {
+            await provider.shutdown();
+            console.log(`✓ ${provider.constructor.name} shut down`);
+          } catch (err) {
+            console.error(
+              `✗ Error shutting down provider ${provider.constructor.name}:`,
+              err
+            );
+          }
         }
       }
     }

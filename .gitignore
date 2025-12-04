@@ -12,6 +12,7 @@ dist
 build
 create-arcanajs-app
 .cache
+.github
 *.local
 
 # Editor directories and files

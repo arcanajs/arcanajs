@@ -271,6 +271,23 @@ export const createServerConfig = (): webpack.Configuration => {
       filename: "server.js",
     },
     externals: [
+      // Custom external handler to exclude user config files from bundling
+      ({ context, request }, callback) => {
+        // Externalize all files in src/config directory (keep them on disk)
+        if (request && request.includes("src/config")) {
+          return callback(null, "commonjs " + request);
+        }
+        // Externalize .ts files in user project to avoid bundling issues
+        if (
+          request &&
+          request.endsWith(".ts") &&
+          context &&
+          context.includes(cwd)
+        ) {
+          return callback(null, "commonjs " + request);
+        }
+        callback();
+      },
       nodeExternals({
         allowlist: [/^arcanajs/],
       }),

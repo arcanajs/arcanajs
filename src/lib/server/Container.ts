@@ -74,6 +74,13 @@ export class Container {
   }
 
   /**
+   * Check if a service is registered in the container
+   */
+  public has(key: string | ClassConstructor): boolean {
+    return this.bindings.has(key);
+  }
+
+  /**
    * Alias for make() - resolve a dependency from the container
    */
   public resolve<T>(key: string | ClassConstructor<T>): T {

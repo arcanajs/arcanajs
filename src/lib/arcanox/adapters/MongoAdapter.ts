@@ -1,5 +1,5 @@
 import type { Db, MongoClient } from "mongodb";
-import { dynamicRequire } from "../../server/utils/dynamicRequire";
+import { dynamicRequireSync } from "../../server/utils/dynamicRequire";
 import {
   ColumnDefinition,
   Connection,
@@ -14,7 +14,7 @@ export class MongoAdapter implements DatabaseAdapter {
   private db: Db | null = null;
 
   async connect(config: DatabaseConfig): Promise<Connection> {
-    const { MongoClient } = dynamicRequire("mongodb");
+    const { MongoClient } = dynamicRequireSync("mongodb");
     const url = `mongodb://${config.host}:${config.port}`;
     this.client = new MongoClient(url, {
       auth:
@@ -268,7 +268,7 @@ export class MongoAdapter implements DatabaseAdapter {
   }
 
   private normalizeId(id: any): any {
-    const { ObjectId } = dynamicRequire("mongodb");
+    const { ObjectId } = dynamicRequireSync("mongodb");
     if (id instanceof ObjectId) return id;
     if (typeof id === "string" && ObjectId.isValid(id)) {
       return new ObjectId(id);

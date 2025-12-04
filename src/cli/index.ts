@@ -119,10 +119,75 @@ const dev = async () => {
   process.env.NODE_ENV = "development";
   console.log("Starting development server...");
 
-  // Start HMR WebSocket Server
-  const HMR_PORT = 3001;
-  const wss = new WebSocketServer({ port: HMR_PORT });
-  console.log(`HMR Server running on port ${HMR_PORT}`);
+  const HMR_INITIAL_PORT = 3001;
+  const MAX_PORT_ATTEMPTS = 10;
+  let wss: WebSocketServer | undefined;
+  let HMR_PORT: number | undefined;
+
+  // Helper function to create WebSocket server with proper error handling
+  const createWSS = (port: number): Promise<WebSocketServer> => {
+    return new Promise((resolve, reject) => {
+      const server = new WebSocketServer({ port });
+
+      server.on("listening", () => {
+        resolve(server);
+      });
+
+      server.on("error", (err: any) => {
+        reject(err);
+      });
+    });
+  };
+
+  // Try to find an available port
+  for (let i = 0; i < MAX_PORT_ATTEMPTS; i++) {
+    try {
+      const currentPort = HMR_INITIAL_PORT + i;
+      wss = await createWSS(currentPort);
+      HMR_PORT = currentPort;
+      console.log(`HMR Server running on port ${HMR_PORT}`);
+      break;
+    } catch (err: any) {
+      if (err.code === "EADDRINUSE") {
+        console.warn(
+          `Port ${HMR_INITIAL_PORT + i} is in use, trying next port...`
+        );
+        if (i === MAX_PORT_ATTEMPTS - 1) {
+          throw new Error(
+            `Could not start HMR server after ${MAX_PORT_ATTEMPTS} attempts.`
+          );
+        }
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  if (!wss || !HMR_PORT) {
+    throw new Error("Failed to start HMR server.");
+  }
+
+  // Graceful shutdown handler
+  const cleanup = () => {
+    console.log("\nShutting down development server...");
+
+    if (wss) {
+      wss.close(() => {
+        console.log("HMR server closed.");
+      });
+    }
+
+    if (serverProcess) {
+      serverProcess.kill();
+      serverProcess = null;
+    }
+
+    process.exit(0);
+  };
+
+  // Register cleanup handlers
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
 
   const broadcastReload = () => {
     wss.clients.forEach((client) => {
@@ -181,6 +246,7 @@ const start = () => {
 };
 
 import { handleDb } from "./commands/db";
+import { handleDependency } from "./commands/dependency";
 import { handleMake } from "./commands/make";
 import { handleMigrate } from "./commands/migrate";
 
@@ -201,6 +267,8 @@ switch (command) {
       handleMigrate(args);
     } else if (command.startsWith("db:")) {
       handleDb(args);
+    } else if (command.startsWith("dependency:")) {
+      handleDependency(args);
     } else {
       console.error(`Unknown command: ${command}`);
       process.exit(1);

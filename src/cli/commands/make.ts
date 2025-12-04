@@ -19,10 +19,21 @@ export const handleMake = async (args: string[]) => {
   switch (type) {
     case "model":
       await makeModel(name);
+      if (args.includes("--all") || args.includes("-a")) {
+        await makeMigration(`create_${name.toLowerCase()}s_table`);
+        await makeFactory(`${name}Factory`);
+        await makeSeeder(`${name}Seeder`);
+        await makeController(`${name}Controller`, "resource");
+      }
       break;
     case "controller":
-      const isResource = args.includes("--resource") || args.includes("-r");
-      await makeController(name, isResource);
+      let controllerType: "normal" | "api" | "resource" = "normal";
+      if (args.includes("--resource") || args.includes("-r")) {
+        controllerType = "resource";
+      } else if (args.includes("--api")) {
+        controllerType = "api";
+      }
+      await makeController(name, controllerType);
       break;
     case "migration":
       await makeMigration(name);

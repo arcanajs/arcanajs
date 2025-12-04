@@ -13,7 +13,7 @@ export const handleDb = async (args: string[]) => {
   }
 
   // Load config
-  const configPath = path.resolve(process.cwd(), "database/config.ts");
+  const configPath = path.resolve(process.cwd(), "src/config/database");
 
   try {
     require("ts-node").register({

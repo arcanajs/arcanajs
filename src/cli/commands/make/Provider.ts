@@ -1,9 +1,10 @@
 import { writeFile } from "../../utils/writeFile";
+import { toPascalCase } from "../../utils/toPascalCase";
 
 export default async function makeProvider(name: string) {
   const content = `import { ServiceProvider } from "arcanajs/server";
 
-export class ${name} extends ServiceProvider {
+class ${toPascalCase(name)} extends ServiceProvider {
   /**
    * Register any application services.
    */
@@ -18,7 +19,8 @@ export class ${name} extends ServiceProvider {
     // Run code on application startup
   }
 }
-`;
 
-  await writeFile("app/Providers", `${name}.ts`, content);
+export default ${toPascalCase(name)}`;
+
+  await writeFile("app/Providers", `${toPascalCase(name)}.ts`, content);
 }

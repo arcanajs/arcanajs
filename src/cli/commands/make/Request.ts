@@ -1,9 +1,10 @@
 import { writeFile } from "../../utils/writeFile";
+import { toPascalCase } from "../../utils/toPascalCase";
 
 export default async function makeRequest(name: string) {
-  const content = `import { FormRequest } from "arcanajs/server";
+  const content = `import { FormRequest } from "arcanajs/validator";
 
-export class ${name} extends FormRequest {
+class ${toPascalCase(name)} extends FormRequest {
   /**
    * Determine if the user is authorized to make this request.
    */
@@ -20,7 +21,8 @@ export class ${name} extends FormRequest {
     };
   }
 }
-`;
 
-  await writeFile("app/Requests", `${name}.ts`, content);
+export default ${toPascalCase(name)}`;
+
+  await writeFile("app/Http/Requests", `${toPascalCase(name)}.ts`, content);
 }

@@ -4,7 +4,7 @@ import type {
   ResultSetHeader,
   RowDataPacket,
 } from "mysql2/promise";
-import { dynamicRequire } from "../../server/utils/dynamicRequire";
+import { dynamicRequireSync } from "../../server/utils/dynamicRequire";
 import type {
   ColumnDefinition,
   Connection,
@@ -22,7 +22,7 @@ export class MySQLAdapter implements DatabaseAdapter {
   private connection: PoolConnection | null = null;
 
   async connect(config: DatabaseConfig): Promise<Connection> {
-    const mysql = dynamicRequire("mysql2/promise");
+    const mysql = dynamicRequireSync("mysql2/promise");
 
     this.pool = mysql.createPool({
       host: config.host,

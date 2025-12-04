@@ -115,21 +115,30 @@ export class MailService {
    * Create AWS SES transporter
    */
   private static createSESTransporter(config: SESConfig): MailTransporter {
-    const aws = require("@aws-sdk/client-ses");
-    const { defaultProvider } = require("@aws-sdk/credential-provider-node");
+    const { SESClient, SendRawEmailCommand } = require("@aws-sdk/client-ses");
 
-    const ses = new aws.SES({
+    const clientConfig: Record<string, unknown> = {
       region: config.region,
-      credentials: defaultProvider({
+    };
+
+    if (config.accessKeyId && config.secretAccessKey) {
+      clientConfig.credentials = {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
         sessionToken: config.sessionToken,
-      }),
-    });
+      };
+    }
 
-    return nodemailer.createTransport({
-      SES: { ses, aws },
-    });
+    const ses = new SESClient(clientConfig);
+
+    const transporterOptions = {
+      SES: {
+        ses,
+        aws: { SendRawEmailCommand },
+      },
+    };
+
+    return nodemailer.createTransport(transporterOptions as any);
   }
 
   /**
