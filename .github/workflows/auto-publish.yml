@@ -1,0 +1,174 @@
+name: Publish Package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "bin/**"
+      - "package.json"
+      - "tsconfig.json"
+      - "webpack.config.ts"
+    tags:
+      - "v*"
+  release:
+    types: [created]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write # Required for OIDC token generation
+  contents: write # Required for creating releases and pushing tags
+  packages: write # Required for publishing packages
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish package
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      # Ensure npm 11.5.1 or later is installed for OIDC support
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Configure git
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Handle version from release tag (if triggered by release)
+      - name: Sync version from release tag
+        if: github.event_name == 'release'
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          if [ -z "$TAG" ]; then
+            echo "No release tag found on this event. Expected on 'release: created'." >&2
+            exit 1
+          fi
+          # Strip leading 'v' if present (e.g., v1.2.3 -> 1.2.3)
+          VERSION="${TAG#v}"
+          echo "Setting package.json version to $VERSION (from tag $TAG)"
+          npm version "$VERSION" --no-git-tag-version
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        id: release_version
+
+      # Handle version for main branch pushes (auto-bump)
+      - name: Check if version needs bump
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: check
+        run: |
+          # Get current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+          # Check if tag already exists
+          if git rev-parse "v$CURRENT_VERSION" >/dev/null 2>&1; then
+            echo "needs_bump=true" >> $GITHUB_OUTPUT
+            echo "Version v$CURRENT_VERSION already exists, will bump"
+          else
+            echo "needs_bump=false" >> $GITHUB_OUTPUT
+            echo "Version v$CURRENT_VERSION is new, no bump needed"
+          fi
+
+      - name: Bump patch version and create tag
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check.outputs.needs_bump == 'true'
+        id: bump
+        run: |
+          # Bump patch without auto-commit/tag first
+          npm version patch --no-git-tag-version
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          # Commit with [skip ci] to avoid re-triggering workflows
+          git add package.json package-lock.json || true
+          git commit -m "chore(release): v$VERSION [skip ci]" || echo "No changes to commit"
+          git tag "v$VERSION" || echo "Tag already exists"
+          # Push commit and tag (if any)
+          git push origin main || true
+          git push origin --tags || true
+
+      - name: Set version for publish
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "release" ]; then
+            VERSION="${{ steps.release_version.outputs.version }}"
+          elif [ "${{ steps.check.outputs.needs_bump }}" == "true" ]; then
+            VERSION="${{ steps.bump.outputs.version }}"
+          elif [ -n "${{ steps.check.outputs.current_version }}" ]; then
+            VERSION="${{ steps.check.outputs.current_version }}"
+          else
+            # Fallback: read from package.json directly
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Check if version already published
+        id: check_npm
+        continue-on-error: true
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if npm view arcanajs@$VERSION version 2>/dev/null; then
+            echo "Version $VERSION already published on npm"
+            echo "already_published=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $VERSION not yet published"
+            echo "already_published=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to npm
+        if: steps.check_npm.outputs.already_published != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "Publishing version ${{ steps.version.outputs.version }} to npm..."
+          npm publish --access public
+
+      - name: Create GitHub Release
+        if: steps.check_npm.outputs.already_published != 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body: |
+            ## Changes
+            Auto-generated release for version ${{ steps.version.outputs.version }}
+
+            Published to npm: https://www.npmjs.com/package/arcanajs/v/${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false

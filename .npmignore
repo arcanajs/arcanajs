@@ -1,0 +1,41 @@
+# Source files (only dist/ should be published)
+src/
+scripts/
+
+# Development files
+.github/
+.vscode/
+.idea/
+
+# Configuration files
+tsconfig.json
+webpack.config.ts
+.gitignore
+.eslintrc*
+.prettierrc*
+
+# Documentation (keep README and LICENSE)
+*.md
+!README.md
+
+# Test files
+test/
+tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Build artifacts
+*.log
+*.tgz
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+.cache/
+coverage/
+*.local

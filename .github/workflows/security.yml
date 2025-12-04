@@ -1,0 +1,53 @@
+name: Security Analysis
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit
+
+      - name: Dependabot Alert Check
+        if: github.actor == 'dependabot[bot]'
+        uses: dependabot/fetch-metadata@v2.4.0
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+
+      - name: Dependency Review
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          # Provide explicit base/head refs when running on PR contexts. On push events this step is skipped to avoid
+          # the error: "Both a base ref and head ref must be provided..."
+          base-ref: ${{ github.event.pull_request.base.sha }}
+          head-ref: ${{ github.event.pull_request.head.sha }}
