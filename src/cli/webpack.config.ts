@@ -80,12 +80,7 @@ const getViewsLoaderPath = () => {
 export const createClientConfig = (): webpack.Configuration => {
   const isProduction = process.env.NODE_ENV === "production";
   const viewsLoaderPath = getViewsLoaderPath();
-  const clientEntry = findEntry([
-    "src/client",
-    "src/client/index",
-    "src/index",
-    "src/main",
-  ]);
+  const clientEntry = findEntry(["src/client", "src/client/index"]);
 
   return {
     mode: isProduction ? "production" : "development",
@@ -105,6 +100,7 @@ export const createClientConfig = (): webpack.Configuration => {
       extensions: [".ts", ".tsx", ".js", ".jsx"],
       alias: {
         "arcana-views": viewsLoaderPath,
+        "@": path.resolve(cwd, "src"),
       },
     },
     resolveLoader: {
@@ -261,7 +257,7 @@ export const createServerConfig = (): webpack.Configuration => {
   const serverEntry = findEntry([
     "src/server",
     "src/server/index",
-    "src/server/main",
+    "src/bootstrap/server",
   ]);
 
   const viewsLoaderPath = getViewsLoaderPath();
@@ -283,6 +279,7 @@ export const createServerConfig = (): webpack.Configuration => {
       extensions: [".ts", ".tsx", ".js", ".jsx"],
       alias: {
         "arcana-views": viewsLoaderPath,
+        "@": path.resolve(cwd, "src"),
       },
     },
     resolveLoader: {

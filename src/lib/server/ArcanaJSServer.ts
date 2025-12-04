@@ -64,7 +64,7 @@ declare global {
       error: (
         message?: string,
         status?: number,
-        error?: string | object | null,
+        error?: string | object | null | undefined | unknown,
         data?: string | object | null
       ) => Response;
 
