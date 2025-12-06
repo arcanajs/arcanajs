@@ -202,7 +202,8 @@ export class Validator {
           this.addError(field, `${field} must be a valid JSON string.`);
         break;
       case "email":
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Safer email regex to prevent ReDoS
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(String(value)))
           this.addError(field, `${field} must be a valid email address.`);
         break;

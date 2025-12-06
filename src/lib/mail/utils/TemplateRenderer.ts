@@ -1,5 +1,6 @@
 import * as ejs from "ejs";
 import * as fs from "fs";
+import { htmlToText as convertHtmlToText } from "html-to-text";
 import * as path from "path";
 import { MailTemplateConfig } from "../types";
 
@@ -118,10 +119,14 @@ export class TemplateRenderer {
    * Convert HTML to plain text
    */
   private static htmlToText(html: string): string {
-    return html
-      .replace(/<style[^>]*>.*?<\/style>/gi, "")
-      .replace(/<script[^>]*>.*?<\/script>/gi, "")
-      .replace(/<[^>]+>/g, "")
+    // Robustly convert HTML to plain text using a well-tested library
+    return convertHtmlToText(html, {
+      wordwrap: false,
+      selectors: [
+        { selector: "img", format: "skip" },
+        { selector: "a", options: { ignoreHref: true } },
+      ],
+    })
       .replace(/\s+/g, " ")
       .trim();
   }
