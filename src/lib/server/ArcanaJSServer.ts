@@ -131,7 +131,7 @@ class ArcanaJSServer {
     resolvedViews.ErrorPage = resolvedViews.ErrorPage || ErrorPage;
 
     // Security headers
-    this.app.use(helmet({ contentSecurityPolicy: false }));
+    this.app.use(helmet());
     this.app.use(cookieParser());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));

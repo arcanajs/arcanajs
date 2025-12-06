@@ -118,11 +118,27 @@ export class TemplateRenderer {
    * Convert HTML to plain text
    */
   private static htmlToText(html: string): string {
-    return html
-      .replace(/<style[^>]*>.*?<\/style>/gi, "")
-      .replace(/<script[^>]*>.*?<\/script>/gi, "")
-      .replace(/<[^>]+>/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
+    let text = html;
+
+    // Recursively remove script and style tags to handle nested/malicious injections
+    // e.g. <scr<script>ipt>
+    const removeTags = (str: string, tagName: string): string => {
+      const regex = new RegExp(`<${tagName}[^>]*>.*?<\\/${tagName}>`, "gi");
+      let oldStr;
+      do {
+        oldStr = str;
+        str = str.replace(regex, "");
+      } while (str !== oldStr);
+      return str;
+    };
+
+    text = removeTags(text, "style");
+    text = removeTags(text, "script");
+
+    // Remove all other tags using a robust regex that handles attributes with >
+    // Matches <tag ... > where ... can contain quoted strings with >
+    text = text.replace(/<[^"'>]*(?:(?:"[^"]*"|'[^']*')[^"'>]*)*>/g, "");
+
+    return text.replace(/\s+/g, " ").trim();
   }
 }
