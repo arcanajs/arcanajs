@@ -13,6 +13,9 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "exports": {
+    "./express-types": {
+      "types": "./dist/types/express.d.ts"
+    },
     "./server": {
       "types": "./dist/lib/index.server.d.ts",
       "default": "./dist/arcanajs.js"

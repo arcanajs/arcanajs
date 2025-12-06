@@ -4,6 +4,7 @@
  */
 
 /// <reference types="react" />
+/// <reference path="./express.d.ts" />
 
 // CSS Module declarations
 declare module "*.css" {
