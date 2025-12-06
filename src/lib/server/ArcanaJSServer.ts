@@ -131,7 +131,16 @@ class ArcanaJSServer {
     resolvedViews.ErrorPage = resolvedViews.ErrorPage || ErrorPage;
 
     // Security headers
-    this.app.use(helmet());
+    this.app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            styleSrc: ["'self'", "'unsafe-inline'"],
+          },
+        },
+      })
+    );
     this.app.use(cookieParser());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
