@@ -1,6 +1,6 @@
-import { execSync } from "child_process";
-import fs from "fs";
-import path from "path";
+const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
 async function getLatest(pkg) {
   const res = await fetch(`https://registry.npmjs.org/${pkg}`);
