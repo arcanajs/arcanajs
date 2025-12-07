@@ -5,10 +5,8 @@
  * This ensures CSS and asset type declarations are available to external projects
  */
 
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { join } from "path";
-
-const __dirname = process.cwd();
+const fs = require("fs");
+const path = require("path");
 
 // Reference to add at the top of declaration files
 const typeReference = '/// <reference path="../types/global.d.ts" />\n\n';
@@ -26,16 +24,16 @@ const filesToModify = [
 console.log("📝 Adding type references to declaration files...\n");
 
 filesToModify.forEach((filePath) => {
-  const fullPath = join(__dirname, filePath);
+  const fullPath = path.join(__dirname, "..", filePath);
 
   // Check if file exists
-  if (!existsSync(fullPath)) {
+  if (!fs.existsSync(fullPath)) {
     console.log(`⚠️  Skipping ${filePath} (file not found)`);
     return;
   }
 
   // Read current content
-  const content = readFileSync(fullPath, "utf8");
+  const content = fs.readFileSync(fullPath, "utf8");
 
   // Check if reference already exists
   if (content.includes('/// <reference path="../types/global.d.ts"')) {
@@ -47,7 +45,7 @@ filesToModify.forEach((filePath) => {
   const newContent = typeReference + content;
 
   // Write back to file
-  writeFileSync(fullPath, newContent, "utf8");
+  fs.writeFileSync(fullPath, newContent, "utf8");
   console.log(`✓ Added type reference to ${filePath}`);
 });
 
