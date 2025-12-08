@@ -82,12 +82,32 @@ export const createClientConfig = (): webpack.Configuration => {
   const viewsLoaderPath = getViewsLoaderPath();
   const clientEntry = findEntry(["src/bootstrap/client"]);
 
+  // HMR client entry (development only)
+  const entries: Record<string, string> = {
+    client: clientEntry,
+  };
+
+  if (!isProduction) {
+    // Add HMR client for development
+    // Resolve from compiled CLI location (dist/cli -> dist/lib/client)
+    const hmrClientPath = path.resolve(
+      __dirname,
+      "../lib/client/hmr-client.js"
+    );
+
+    if (fs.existsSync(hmrClientPath)) {
+      entries["hmr-client"] = hmrClientPath;
+    } else {
+      console.warn(
+        "[ArcanaJS] HMR client not found - hot reload will not work"
+      );
+    }
+  }
+
   return {
     mode: isProduction ? "production" : "development",
     target: "web",
-    entry: {
-      client: clientEntry,
-    },
+    entry: entries,
     output: {
       path: path.resolve(cwd, "dist/public"),
       filename: isProduction
@@ -110,7 +130,10 @@ export const createClientConfig = (): webpack.Configuration => {
       rules: [
         {
           test: /\.(ts|tsx|js|jsx)$/,
-          exclude: /node_modules/,
+          exclude: [
+            /node_modules/,
+            /node_modules\/arcanajs\/dist/, // Exclude arcanajs dist to prevent bundling framework internals
+          ],
           use: {
             loader: resolveLoader("babel-loader"),
             options: {
@@ -122,8 +145,34 @@ export const createClientConfig = (): webpack.Configuration => {
                 ],
                 resolveLoader("@babel/preset-typescript"),
               ],
+              plugins: [
+                resolveLoader("babel-plugin-transform-typescript-metadata"),
+                [
+                  resolveLoader("@babel/plugin-proposal-decorators"),
+                  { legacy: true },
+                ],
+                [
+                  resolveLoader("@babel/plugin-transform-class-properties"),
+                  { loose: true },
+                ],
+                [
+                  resolveLoader("@babel/plugin-transform-private-methods"),
+                  { loose: true },
+                ],
+                [
+                  resolveLoader(
+                    "@babel/plugin-transform-private-property-in-object"
+                  ),
+                  { loose: true },
+                ],
+              ],
             },
           },
+        },
+        // Ignore .map files from arcanajs to prevent webpack from trying to parse them
+        {
+          test: /\.map$/,
+          use: resolveLoader("null-loader"),
         },
         // CSS Modules rule for .module.css files
         {
@@ -221,6 +270,7 @@ export const createClientConfig = (): webpack.Configuration => {
       }),
     ],
     optimization: {
+      minimize: true,
       splitChunks: {
         chunks: "all",
         cacheGroups: {
@@ -248,15 +298,13 @@ export const createClientConfig = (): webpack.Configuration => {
       maxAssetSize: 512000,
       hints: isProduction ? "warning" : false,
     },
-    devtool: isProduction ? "source-map" : "eval-source-map",
+    devtool: isProduction ? "source-map" : "source-map", // Use source-map instead of eval-source-map for CSP compliance
   };
 };
 
 export const createServerConfig = (): webpack.Configuration => {
   const isProduction = process.env.NODE_ENV === "production";
-  const serverEntry = findEntry([
-    "src/bootstrap/server",
-  ]);
+  const serverEntry = findEntry(["src/bootstrap/server"]);
 
   const viewsLoaderPath = getViewsLoaderPath();
 
@@ -287,7 +335,10 @@ export const createServerConfig = (): webpack.Configuration => {
       rules: [
         {
           test: /\.(ts|tsx|js|jsx)$/,
-          exclude: /node_modules/,
+          exclude: [
+            /node_modules/,
+            /node_modules\/arcanajs\/dist/, // Exclude arcanajs dist to prevent bundling framework internals
+          ],
           use: {
             loader: resolveLoader("babel-loader"),
             options: {
@@ -299,8 +350,34 @@ export const createServerConfig = (): webpack.Configuration => {
                 ],
                 resolveLoader("@babel/preset-typescript"),
               ],
+              plugins: [
+                resolveLoader("babel-plugin-transform-typescript-metadata"),
+                [
+                  resolveLoader("@babel/plugin-proposal-decorators"),
+                  { legacy: true },
+                ],
+                [
+                  resolveLoader("@babel/plugin-transform-class-properties"),
+                  { loose: true },
+                ],
+                [
+                  resolveLoader("@babel/plugin-transform-private-methods"),
+                  { loose: true },
+                ],
+                [
+                  resolveLoader(
+                    "@babel/plugin-transform-private-property-in-object"
+                  ),
+                  { loose: true },
+                ],
+              ],
             },
           },
+        },
+        // Ignore .map files from arcanajs to prevent webpack from trying to parse them
+        {
+          test: /\.map$/,
+          use: resolveLoader("null-loader"),
         },
         // CSS Modules rule for .module.css files on server (for SSR)
         {
@@ -333,6 +410,19 @@ export const createServerConfig = (): webpack.Configuration => {
         },
       ],
     },
-    devtool: isProduction ? "source-map" : "eval-source-map",
+    devtool: isProduction ? "source-map" : "source-map", // Use source-map for CSP compliance
+    plugins: [],
+    optimization: {
+      nodeEnv: false,
+      splitChunks: false,
+      minimize: isProduction,
+    },
+    ignoreWarnings: [
+      {
+        module: /node_modules\/express\/lib\/view\.js/,
+        message:
+          /Critical dependency: the request of a dependency is an expression/,
+      },
+    ],
   };
 };

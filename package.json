@@ -5,7 +5,7 @@
     "email": "mohammed.bencheikh.dev@gmail.com",
     "url": "https://mohammedbencheikh.com/"
   },
-  "version": "5.0.6",
+  "version": "5.1.0",
   "description": "ArcanaJS Framework",
   "main": "./dist/arcanajs.js",
   "scripts": {
@@ -32,6 +32,10 @@
     "./auth": {
       "types": "./dist/lib/index.auth.d.ts",
       "default": "./dist/arcanajs.auth.js"
+    },
+    "./di": {
+      "types": "./dist/lib/index.di.d.ts",
+      "default": "./dist/arcanajs.di.js"
     },
     "./validator": {
       "types": "./dist/lib/index.validator.d.ts",
@@ -92,6 +96,8 @@
   },
   "dependencies": {
     "@babel/core": "^7.28.5",
+    "@babel/plugin-proposal-decorators": "^7.28.0",
+    "@babel/plugin-transform-class-properties": "^7.27.1",
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
@@ -121,6 +127,7 @@
     "reflect-metadata": "^0.2.2",
     "style-loader": "^4.0.0",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "webpack": "^5.103.0",
@@ -130,6 +137,8 @@
   },
   "devDependencies": {
     "@aws-sdk/client-ses": "^3.946.0",
+    "@babel/plugin-transform-private-methods": "^7.27.1",
+    "@babel/plugin-transform-private-property-in-object": "^7.27.1",
     "@faker-js/faker": "^10.1.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/compression": "^1.8.1",
@@ -145,6 +154,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/webpack-node-externals": "^3.0.4",
     "autoprefixer": "^10.4.22",
+    "babel-plugin-transform-typescript-metadata": "^0.4.0",
     "connect-redis": "^9.0.0",
     "handlebars": "^4.7.8",
     "ioredis": "^5.8.2",
@@ -154,7 +164,8 @@
     "pg": "^8.16.3",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.17",
+    "terser-webpack-plugin": "^5.3.15"
   },
   "keywords": [
     "arcanajs",

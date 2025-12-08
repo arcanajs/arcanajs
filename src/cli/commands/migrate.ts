@@ -2,30 +2,19 @@ import path from "path";
 import { Model } from "../../lib/arcanox/Model";
 import { Schema } from "../../lib/arcanox/schema";
 import { MigrationRunner } from "../../lib/arcanox/schema/Migration";
-import { Container } from "../../lib/server/Container";
-import { dynamicRequire } from "../../lib/server/utils/dynamicRequire";
+import { Container } from "../../lib/di/Container";
+import { ModuleLoader } from "../../utils/ModuleLoader";
 
 export const handleMigrate = async (args: string[]) => {
   const command = args[0]; // migrate, migrate:rollback, etc.
   // Load config
   const configPath = path.resolve(process.cwd(), "src/config/database.ts");
 
-  try {
-    const tsNode = dynamicRequire("ts-node");
-    tsNode.register({
-      transpileOnly: true,
-      compilerOptions: {
-        module: "commonjs",
-        moduleResolution: "node",
-      },
-    });
-  } catch (e) {
-    // ts-node might not be installed, try loading js
-  }
+  ModuleLoader.registerTsNode();
 
   let rawConfig;
   try {
-    const module = dynamicRequire(configPath);
+    const module = ModuleLoader.require(configPath);
     rawConfig = module.default || module.databaseConfig || module;
   } catch (error) {
     console.error("Failed to load database config:", error);

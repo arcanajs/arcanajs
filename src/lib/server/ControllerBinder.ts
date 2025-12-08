@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-import { container } from "./Container";
+import { container } from "../di/Container";
 
 export default class ControllerBinder {
   static handle(controller: any, method: string) {

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { Middleware } from "../../server/http/Middleware";
+import { Middleware } from "../../validation/http/Middleware";
 
 export class RoleMiddleware implements Middleware {
   private roles: string[];

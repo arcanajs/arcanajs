@@ -13,7 +13,7 @@ export function createSingletonContext<T>(
   key: string,
   defaultValue: T
 ): React.Context<T> {
-  const globalAny = global as any;
+  const globalAny = globalThis as any;
   const symbolKey = Symbol.for(`ARCANAJS_CONTEXT_${key}`);
 
   if (!globalAny[symbolKey]) {

@@ -1,4 +1,4 @@
-import { dynamicRequire } from "../../server/utils/dynamicRequire";
+import { ModuleLoader } from "../../../utils/ModuleLoader";
 import { Schema } from "./Schema";
 
 /**
@@ -224,7 +224,7 @@ export class MigrationRunner {
    */
   private async loadMigration(filePath: string): Promise<any> {
     // Use dynamic require to avoid webpack bundling
-    const migrationModule = dynamicRequire(filePath);
+    const migrationModule = ModuleLoader.require(filePath);
     const MigrationClass = migrationModule.default || migrationModule;
 
     if (!MigrationClass || typeof MigrationClass !== "function") {

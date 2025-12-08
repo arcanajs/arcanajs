@@ -1,5 +1,5 @@
 import type { Db, MongoClient } from "mongodb";
-import { dynamicRequire } from "../../server/utils/dynamicRequire";
+import { ModuleLoader } from "../../../utils/ModuleLoader";
 import {
   ColumnDefinition,
   Connection,
@@ -14,13 +14,24 @@ export class MongoAdapter implements DatabaseAdapter {
   private db: Db | null = null;
 
   async connect(config: DatabaseConfig): Promise<Connection> {
-    const { MongoClient } = dynamicRequire("mongodb");
+    const { MongoClient } = ModuleLoader.require("mongodb");
 
     // Support full connection string (url or uri) or build from parts
     const url =
       config.url || config.uri || `mongodb://${config.host}:${config.port}`;
 
-    const options: any = {};
+    const options: any = {
+      family: 4, // Force IPv4 to avoid connection issues with MongoDB Atlas
+    };
+
+    if (config.pool) {
+      options.minPoolSize = config.pool.min;
+      options.maxPoolSize = config.pool.max;
+    }
+
+    if (config.ssl !== undefined) {
+      options.tls = config.ssl;
+    }
 
     // Only add auth if not using a connection string that likely already has it
     // or if explicitly provided to override
@@ -33,7 +44,30 @@ export class MongoAdapter implements DatabaseAdapter {
 
     this.client = new MongoClient(url, options);
 
-    await this.client!.connect();
+    try {
+      await this.client!.connect();
+    } catch (error: any) {
+      if (
+        error.name === "MongoServerSelectionError" ||
+        error.message.includes("SSL") ||
+        error.message.includes("ECONNREFUSED")
+      ) {
+        console.error(
+          "\n\x1b[31m%s\x1b[0m", // Red color
+          "MongoDB Connection Failed: It looks like you are unable to connect to the database."
+        );
+        console.error(
+          "\x1b[33m%s\x1b[0m", // Yellow color
+          "Hint: If you are using MongoDB Atlas, please ensure your current IP address is whitelisted in the Network Access settings."
+        );
+        console.error(
+          "\x1b[33m%s\x1b[0m\n",
+          " If it doesn't work, it may mean that your wifi connection or your router is blocking the connection to Mongo Atlas, You can allow access from anywhere (0.0.0.0/0) for development purposes, or add your specific IP."
+        );
+      }
+      throw error;
+    }
+
     this.db = this.client!.db(config.database);
 
     return {
@@ -275,7 +309,7 @@ export class MongoAdapter implements DatabaseAdapter {
   }
 
   private normalizeId(id: any): any {
-    const { ObjectId } = dynamicRequire("mongodb");
+    const { ObjectId } = ModuleLoader.require("mongodb");
     if (id instanceof ObjectId) return id;
     if (typeof id === "string" && ObjectId.isValid(id)) {
       return new ObjectId(id);

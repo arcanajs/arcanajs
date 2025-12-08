@@ -116,27 +116,18 @@ export const createArcanaJSMiddleware = (options: ArcanaJSOptions) => {
             params,
             csrfToken,
           });
-          const scriptTag = `<script id="__ARCANAJS_DATA__" type="application/json">${scriptContent}</script>`;
+          const nonce = res.locals.nonce || "";
+          const scriptTag = `<script id="__ARCANAJS_DATA__" type="application/json" nonce="${nonce}">${scriptContent}</script>`;
 
-          const hmrScript = process.env.ARCANA_HMR_PORT
-            ? `
-            <script>
-              (function() {
-                const socket = new WebSocket("ws://localhost:${process.env.ARCANA_HMR_PORT}");
-                socket.onmessage = function(event) {
-                  const data = JSON.parse(event.data);
-                  if (data.type === "reload") {
-                    window.location.reload();
-                  }
-                };
-              })();
-            </script>`
+          // Inject HMR port for the client (script is auto-injected by webpack)
+          const hmrPortScript = process.env.ARCANA_HMR_PORT
+            ? `<script nonce="${nonce}">window.__ARCANA_HMR_PORT__ = ${process.env.ARCANA_HMR_PORT};</script>`
             : "";
 
           const html = htmlData
             .replace("<!--HEAD_CONTENT-->", headHtml)
             .replace("<!--APP_CONTENT-->", appHtml)
-            .replace("<!--ARCANAJS_DATA_SCRIPT-->", scriptTag + hmrScript);
+            .replace("<!--ARCANAJS_DATA_SCRIPT-->", scriptTag + hmrPortScript);
 
           res.send(html);
         });

@@ -1,4 +1,4 @@
-import { ServiceProvider } from "../../server/support/ServiceProvider";
+import { ServiceProvider } from "../../server/ServiceProvider";
 import { Model } from "../Model";
 import { Schema } from "../schema";
 import { DatabaseAdapter } from "../types";
@@ -74,6 +74,18 @@ export class DatabaseProvider extends ServiceProvider {
     } catch (error) {
       console.error("✗ DatabaseProvider: Initialization failed", error);
       throw error;
+    }
+  }
+
+  async boot() {
+    // Ensure connection is established on boot
+    try {
+      await this.app.container.make("DBConnection");
+    } catch (error) {
+      console.error(
+        "✗ DatabaseProvider: Failed to establish connection on boot",
+        error
+      );
     }
   }
 

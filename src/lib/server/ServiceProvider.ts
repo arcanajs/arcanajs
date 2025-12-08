@@ -1,4 +1,4 @@
-import ArcanaJSServer from "../ArcanaJSServer";
+import ArcanaJSServer from "./ArcanaJSServer";
 
 export abstract class ServiceProvider {
   protected app: ArcanaJSServer;

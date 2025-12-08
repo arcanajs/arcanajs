@@ -1,8 +1,7 @@
 import path from "path";
-import { MongoAdapter } from "../../lib/arcanox/adapters/MongoAdapter";
-import { MySQLAdapter } from "../../lib/arcanox/adapters/MySQLAdapter";
-import { PostgresAdapter } from "../../lib/arcanox/adapters/PostgresAdapter";
 import { Model } from "../../lib/arcanox/Model";
+import { Container } from "../../lib/di/Container";
+import { ModuleLoader } from "../../utils/ModuleLoader";
 
 export const handleDb = async (args: string[]) => {
   const command = args[0]; // db:seed
@@ -13,52 +12,75 @@ export const handleDb = async (args: string[]) => {
   }
 
   // Load config
-  const configPath = path.resolve(process.cwd(), "src/config/database");
+  const configPath = path.resolve(process.cwd(), "src/config/database.ts");
 
+  ModuleLoader.registerTsNode();
+
+  let rawConfig;
   try {
-    require("ts-node").register({
-      transpileOnly: true,
-      compilerOptions: {
-        module: "commonjs",
-      },
-    });
-  } catch (e) {}
-
-  // Use dynamic require to avoid webpack bundling user project files
-  const { dynamicRequire } = require("../../lib/server/utils/dynamicRequire");
-
-  let config;
-  try {
-    const module = dynamicRequire(configPath);
-    config = module.default || module.databaseConfig || module;
+    const module = ModuleLoader.require(configPath);
+    rawConfig = module.default || module.databaseConfig || module;
   } catch (error) {
     console.error("Failed to load database config:", error);
     process.exit(1);
   }
 
+  // Register config in container (to match DatabaseProvider logic)
+  const container = Container.getInstance();
+  container.singleton("DatabaseConfig", () => rawConfig);
+
+  let databaseConfig: any;
+  try {
+    databaseConfig = container.resolve("DatabaseConfig");
+    console.log("✓ DB: Configuration loaded successfully");
+  } catch (err) {
+    console.warn("⚠ DB: No configuration found - Skipping setup");
+    process.exit(1);
+  }
+
   // Connect to DB
   let adapter;
-  if (config.type === "postgres") {
-    adapter = new PostgresAdapter();
-  } else if (config.type === "mongodb") {
-    adapter = new MongoAdapter();
-  } else if (config.type === "mysql") {
-    adapter = new MySQLAdapter();
-  } else {
-    console.error(`Unsupported database type: ${config.type}`);
+  try {
+    switch (databaseConfig.type) {
+      case "mysql":
+        const { MySQLAdapter } = await import(
+          "../../lib/arcanox/adapters/MySQLAdapter"
+        );
+        adapter = new MySQLAdapter();
+        break;
+      case "mongodb":
+        const { MongoAdapter } = await import(
+          "../../lib/arcanox/adapters/MongoAdapter"
+        );
+        adapter = new MongoAdapter();
+        break;
+      case "postgres":
+        const { PostgresAdapter } = await import(
+          "../../lib/arcanox/adapters/PostgresAdapter"
+        );
+        adapter = new PostgresAdapter();
+        break;
+      default:
+        throw new Error(`Unsupported database type: ${databaseConfig.type}`);
+    }
+  } catch (error) {
+    console.error("Failed to load database adapter:", error);
     process.exit(1);
   }
 
   try {
-    await adapter.connect(config);
+    await adapter.connect(databaseConfig);
     Model.setAdapter(adapter); // Set adapter for Models used in seeders
+
+    // Set global adapter for user's Arcanox instance
+    global.ArcanaDatabaseAdapter = adapter;
 
     // Load DatabaseSeeder
     const seederPath = path.resolve(
       process.cwd(),
-      "database/seeders/DatabaseSeeder.ts"
+      "src/database/seeders/DatabaseSeeder.ts"
     );
-    const seederModule = dynamicRequire(seederPath);
+    const seederModule = ModuleLoader.require(seederPath);
     const DatabaseSeeder = seederModule.default || seederModule.DatabaseSeeder;
 
     if (!DatabaseSeeder) {

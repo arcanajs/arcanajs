@@ -1,4 +1,4 @@
-import { ServiceProvider } from "../server/support/ServiceProvider";
+import { ServiceProvider } from "../server/ServiceProvider";
 import { MailService } from "./MailService";
 import { MailConfig } from "./types";
 

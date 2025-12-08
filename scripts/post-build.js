@@ -16,6 +16,7 @@ const filesToModify = [
   "dist/lib/index.client.d.ts",
   "dist/lib/index.server.d.ts",
   "dist/lib/index.auth.d.ts",
+  "dist/lib/index.di.d.ts",
   "dist/lib/index.arcanox.d.ts",
   "dist/lib/index.validator.d.ts",
   "dist/lib/index.mail.d.ts",

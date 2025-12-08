@@ -5,8 +5,9 @@ import ArcanaJSServer, { ArcanaJSConfig } from "./server/ArcanaJSServer";
 // Server Core Exports
 // ============================================================================
 
+// Server
 export { default as ArcanaJSServer } from "./server/ArcanaJSServer";
-export { Container } from "./server/Container";
+export type { ArcanaJSConfig } from "./server/ArcanaJSServer";
 
 export { Express, NextFunction, Request, Response } from "express";
 
@@ -20,13 +21,7 @@ export { default as Route } from "./server/Router";
 // Middleware Exports
 // ============================================================================
 
-export type { Middleware } from "./server/http/Middleware";
-
-// ============================================================================
-// Provider Exports
-// ============================================================================
-
-export { ServiceProvider } from "./server/support/ServiceProvider";
+export type { Middleware } from "./validation/http/Middleware";
 
 // ============================================================================
 // Server Factory Function

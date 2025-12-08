@@ -1,0 +1,27 @@
+{
+  "name": "arcanajs-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "arcanajs dev",
+    "build": "arcanajs build",
+    "start": "arcanajs start"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "arcanajs": "../",
+    "mongodb": "^7.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.22",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3"
+  }
+}

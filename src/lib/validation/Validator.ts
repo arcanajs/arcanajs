@@ -121,7 +121,7 @@ export class Validator {
   protected async autoInjectDatabaseAdapter(): Promise<void> {
     try {
       // Dynamically import Container to avoid circular dependencies
-      const { Container } = await import("../server/Container");
+      const { Container } = await import("../di/Container");
       const container = Container.getInstance();
       this.databaseAdapter = await container.make("DatabaseAdapter");
     } catch (error) {

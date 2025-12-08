@@ -1,5 +1,5 @@
 import MiddlewareBinder from "../server/MiddlewareBinder";
-import { ServiceProvider } from "../server/support/ServiceProvider";
+import { ServiceProvider } from "../server/ServiceProvider";
 import { JWTService } from "./JWTService";
 import { AuthMiddleware } from "./middleware/AuthMiddleware";
 import { SessionManager } from "./SessionManager";

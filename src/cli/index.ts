@@ -251,11 +251,14 @@ import { handleMake } from "./commands/make";
 import { handleMigrate } from "./commands/migrate";
 
 switch (command) {
-  case "build":
-    build();
+  case "init":
+    console.log("Init command not yet implemented");
     break;
   case "dev":
     dev();
+    break;
+  case "build":
+    build();
     break;
   case "start":
     start();

@@ -7,6 +7,7 @@ const entryPoints = [
   "arcanajs",
   "arcanox",
   "arcanajs.client",
+  "arcanajs.di",
   "arcanajs.validator",
   "arcanajs.auth",
   "arcanajs.mail",
@@ -21,8 +22,34 @@ if (!fs.existsSync(distDir)) {
 entryPoints.forEach((entryName) => {
   const fileName = `${entryName}.js`;
   const filePath = path.join(distDir, fileName);
-  const devBundle = `./development/${path.basename(entryName)}.js`;
-  const prodBundle = `./production/${path.basename(entryName)}.min.js`;
+  // Calculate relative path to dist dir from the entry point file
+  const relativeDist = path.relative(path.dirname(filePath), distDir);
+
+  // Helper to normalize paths with forward slashes and ensure ./ prefix
+  const normalizePath = (p) => {
+    let normalized = p.split(path.sep).join("/");
+    if (!normalized.startsWith(".")) {
+      normalized = "./" + normalized;
+    }
+    return normalized;
+  };
+
+  // Construct bundle paths preserving the entry name structure
+  // For cli/index: ../development/cli/index.js
+  // For arcanajs: ./development/arcanajs.js
+  const devBundlePath = path.join(
+    relativeDist,
+    "development",
+    `${entryName}.js`
+  );
+  const prodBundlePath = path.join(
+    relativeDist,
+    "production",
+    `${entryName}.min.js`
+  );
+
+  const devBundle = normalizePath(devBundlePath);
+  const prodBundle = normalizePath(prodBundlePath);
 
   const content = `'use strict';
 

@@ -4,10 +4,10 @@ import { writeFile } from "../../utils/writeFile";
 const makeFactory = async (name: string) => {
   const modelName = name.replace("Factory", "");
   const content = `import { Factory } from 'arcanajs/arcanox'
-import { ${modelName} } from '@/app/Models/${toPascalCase(modelName)}'
+import ${toPascalCase(modelName)} from '@/app/Models/${toPascalCase(modelName)}'
 
-class ${toPascalCase(name)} extends Factory<${modelName}> {
-  protected model = ${modelName}
+class ${toPascalCase(name)} extends Factory<${toPascalCase(modelName)}> {
+  protected model = ${toPascalCase(modelName)}
 
   definition() {
     return {

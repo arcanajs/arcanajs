@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { Validator } from "../../validation/Validator";
+import { Validator } from "../Validator";
 
 export abstract class FormRequest {
   protected req: Request;

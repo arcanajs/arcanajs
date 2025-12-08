@@ -15,5 +15,5 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
   },
-  "include": ["src/lib/**/*", "src/cli/**/*", "src/types/**/*"]
+  "include": ["src/lib/**/*", "src/cli/**/*", "src/types/**/*", "src/utils"]
 }

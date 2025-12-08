@@ -9,19 +9,23 @@ const makeMigration = async (name: string) => {
   )}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
   
   const fileName = `${timestamp}_${name}.ts`;
+  const tableName = name
+    .replace(/^create_/, "")
+    .replace(/_table$/, "")
+    .toLowerCase();
 
   const content = `import { Migration, Schema } from 'arcanajs/arcanox'
 
 class ${toPascalCase(name)} extends Migration {
   async up() {
-    // await Schema.create('${name.toLowerCase()}', (table) => {
+    // await Schema.create('${tableName}', (table) => {
     //   table.id()
     //   table.timestamps()
     // })
   }
 
   async down() {
-    // await Schema.dropIfExists('${name.toLowerCase()}')
+    // await Schema.dropIfExists('${tableName}')
   }
 }
 
