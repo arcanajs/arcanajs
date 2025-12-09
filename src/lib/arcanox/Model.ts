@@ -1,3 +1,4 @@
+import { ModuleLoader } from "../../utils/ModuleLoader";
 import { QueryBuilder } from "./QueryBuilder";
 import { BelongsTo } from "./relations/BelongsTo";
 import { BelongsToMany } from "./relations/BelongsToMany";
@@ -21,7 +22,7 @@ export interface RelationConfig {
 import { Macroable } from "./support/Macroable";
 
 declare global {
-  var ArcanaDatabaseAdapter: DatabaseAdapter | undefined;
+  var ArcanaJSDatabaseAdapter: DatabaseAdapter;
 }
 
 /**
@@ -54,6 +55,35 @@ export class Model<T = any> extends Macroable {
   protected deletedAt: string = "deleted_at";
 
   /**
+   * Get the primary key value
+   */
+  get id(): any {
+    const constructor = this.constructor as typeof Model;
+    const primaryKey = constructor.primaryKey || "id";
+
+    let value = this.getAttribute(primaryKey);
+    if ((value === undefined || value === null) && primaryKey !== "_id") {
+      value = this.getAttribute("_id");
+    }
+
+    return value;
+  }
+
+  /**
+   * Set the primary key value
+   */
+  set id(value: any) {
+    const constructor = this.constructor as typeof Model;
+    const primaryKey = constructor.primaryKey || "id";
+
+    this.setAttribute(primaryKey, value);
+
+    if (primaryKey !== "_id") {
+      this.setAttribute("_id", value);
+    }
+  }
+
+  /**
    * Set the database adapter
    */
   static setAdapter(adapter: DatabaseAdapter): void {
@@ -80,6 +110,18 @@ export class Model<T = any> extends Macroable {
     if (this.tableName) {
       return this.tableName;
     }
+
+    // Try to get table name from instance property (e.g. protected table = 'users')
+    // This is useful when class names are minified in production
+    try {
+      const instance = new this() as any;
+      if (instance.table) {
+        return instance.table;
+      }
+    } catch (e) {
+      // Ignore instantiation errors
+    }
+
     // Auto-generate table name from class name (pluralize and snake_case)
     const className = this.name;
     return this.pluralize(this.snakeCase(className));
@@ -98,8 +140,7 @@ export class Model<T = any> extends Macroable {
    * Get all records
    */
   static async all<T>(): Promise<T[]> {
-    const results = await this.query<T>().get();
-    return results.map((data) => this.hydrate<T>(data));
+    return await this.query<T>().get();
   }
 
   /**
@@ -225,8 +266,14 @@ export class Model<T = any> extends Macroable {
    */
   protected static hydrate<T>(data: any): T {
     const instance = new this() as any;
-    instance.attributes = { ...data };
-    instance.original = { ...data };
+    const hydrated = { ...data };
+    // Ensure both id and _id are available for Mongo-style results
+    if (hydrated._id !== undefined && hydrated.id === undefined) {
+      hydrated.id = hydrated._id;
+    }
+
+    instance.attributes = hydrated;
+    instance.original = { ...hydrated };
     instance.exists = true;
     return instance as T;
   }
@@ -312,6 +359,20 @@ export class Model<T = any> extends Macroable {
         case "date":
         case "datetime":
           return value instanceof Date ? value : new Date(value);
+        case "objectId":
+          if (typeof value === "string" && value.length === 24) {
+            try {
+              const mongodb = ModuleLoader.require("mongodb");
+              if (mongodb && mongodb.ObjectId) {
+                return new mongodb.ObjectId(value);
+              }
+              return value;
+            } catch (e) {
+              console.error("Arcanox Model: Failed to cast to ObjectId", e);
+              return value;
+            }
+          }
+          return value;
         default:
           return value;
       }
@@ -323,6 +384,21 @@ export class Model<T = any> extends Macroable {
         case "date":
         case "datetime":
           return value instanceof Date ? value : new Date(value);
+        case "objectId":
+          // When setting, convert string to ObjectId
+          if (typeof value === "string" && value.length === 24) {
+            try {
+              const mongodb = ModuleLoader.require("mongodb");
+              if (mongodb && mongodb.ObjectId) {
+                return new mongodb.ObjectId(value);
+              }
+              return value;
+            } catch (e) {
+              console.error("Arcanox Model: Failed to cast to ObjectId", e);
+              return value;
+            }
+          }
+          return value;
         default:
           return value;
       }
@@ -474,7 +550,9 @@ export class Model<T = any> extends Macroable {
     localKey?: string
   ): HasOne<R> {
     const instance = new related();
-    const foreign = foreignKey || `${this.constructor.name.toLowerCase()}_id`;
+    const modelClass = this.constructor as typeof Model;
+    const foreign =
+      foreignKey || `${modelClass.singularize(modelClass.getTable())}_id`;
     const local = localKey || "id";
 
     return new HasOne<R>(instance.newQuery(), this, foreign, local);
@@ -489,7 +567,9 @@ export class Model<T = any> extends Macroable {
     localKey?: string
   ): HasMany<R> {
     const instance = new related();
-    const foreign = foreignKey || `${this.constructor.name.toLowerCase()}_id`;
+    const modelClass = this.constructor as typeof Model;
+    const foreign =
+      foreignKey || `${modelClass.singularize(modelClass.getTable())}_id`;
     const local = localKey || "id";
 
     return new HasMany<R>(instance.newQuery(), this, foreign, local);
@@ -504,8 +584,9 @@ export class Model<T = any> extends Macroable {
     ownerKey?: string
   ): BelongsTo<R> {
     const instance = new related();
+    const relatedClass = instance.constructor as typeof Model;
     const foreign =
-      foreignKey || `${instance.constructor.name.toLowerCase()}_id`;
+      foreignKey || `${relatedClass.singularize(relatedClass.getTable())}_id`;
     const owner = ownerKey || "id";
 
     return new BelongsTo<R>(instance.newQuery(), this, foreign, owner);
@@ -524,10 +605,14 @@ export class Model<T = any> extends Macroable {
   ): BelongsToMany<R> {
     const instance = new related();
     const pivotTable = table || this.guessPivotTable(instance);
+    const modelClass = this.constructor as typeof Model;
+    const relatedClass = instance.constructor as typeof Model;
+
     const foreignPivot =
-      foreignPivotKey || `${this.constructor.name.toLowerCase()}_id`;
+      foreignPivotKey || `${modelClass.singularize(modelClass.getTable())}_id`;
     const relatedPivot =
-      relatedPivotKey || `${instance.constructor.name.toLowerCase()}_id`;
+      relatedPivotKey ||
+      `${relatedClass.singularize(relatedClass.getTable())}_id`;
     const parent = parentKey || "id";
     const relatedK = relatedKey || "id";
 
@@ -543,12 +628,14 @@ export class Model<T = any> extends Macroable {
   }
 
   /**
-   * Guess the pivot table name (alphabetical order of model names)
+   * Guess the pivot table name (alphabetical order of table names)
    */
   protected guessPivotTable(related: Model): string {
+    const modelClass = this.constructor as typeof Model;
+    const relatedClass = related.constructor as typeof Model;
     const segments = [
-      this.constructor.name.toLowerCase(),
-      related.constructor.name.toLowerCase(),
+      modelClass.singularize(modelClass.getTable()),
+      relatedClass.singularize(relatedClass.getTable()),
     ];
     segments.sort();
     return segments.join("_");
@@ -594,6 +681,7 @@ export class Model<T = any> extends Macroable {
    * Helper: Convert string to snake_case
    */
   protected static snakeCase(str: string): string {
+    if (!str) return str;
     return str
       .replace(/([A-Z])/g, "_$1")
       .toLowerCase()
@@ -614,9 +702,26 @@ export class Model<T = any> extends Macroable {
   }
 
   /**
+   * Helper: Singularize string (simple implementation)
+   */
+  public static singularize(str: string): string {
+    if (str.endsWith("ies")) {
+      return str.slice(0, -3) + "y";
+    }
+    if (str.endsWith("es") && !str.endsWith("ss")) {
+      return str.slice(0, -2);
+    }
+    if (str.endsWith("s") && !str.endsWith("ss")) {
+      return str.slice(0, -1);
+    }
+    return str;
+  }
+
+  /**
    * Helper: Convert to StudlyCase
    */
   protected studly(str: string): string {
+    if (!str) return str;
     return str.replace(/(^|_)(\w)/g, (_, __, c) => c.toUpperCase());
   }
 }

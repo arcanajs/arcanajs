@@ -33,12 +33,12 @@ export class BelongsTo<R extends Model = any> extends Relation<R> {
     const dictionary: Record<string, R> = {};
 
     results.forEach((result) => {
-      const key = result.getAttribute(this.ownerKey);
+      const key = this.normalizeKey(result.getAttribute(this.ownerKey));
       dictionary[key] = result;
     });
 
     models.forEach((model) => {
-      const key = model.getAttribute(this.foreignKey);
+      const key = this.normalizeKey(model.getAttribute(this.foreignKey));
       if (dictionary[key]) {
         model.setRelation(relation, dictionary[key]);
       }

@@ -155,10 +155,11 @@ export class MongoAdapter implements DatabaseAdapter {
 
     const results = await cursor.toArray();
 
-    // Map _id to id but keep _id
+    // Map _id to id but keep _id, and normalize to string for convenience
     return results.map((doc) => {
-      const { _id, ...rest } = doc;
-      return { id: _id, _id, ...rest };
+      const { _id, id: existingId, ...rest } = doc;
+      const normalizedId = _id?.toString ? _id.toString() : _id;
+      return { id: normalizedId ?? existingId, _id, ...rest };
     });
   }
 
@@ -245,8 +246,9 @@ export class MongoAdapter implements DatabaseAdapter {
       const column = clause.column === "id" ? "_id" : clause.column;
       let value = clause.value;
 
-      if (column === "_id") {
-        value = this.normalizeId(value);
+      // Normalize ObjectId fields - both primary key and foreign keys ending with _id
+      if (column === "_id" || column === "id" || column.endsWith("_id")) {
+        value = this.normalizeIdValue(value);
       }
 
       switch (clause.operator) {
@@ -292,6 +294,35 @@ export class MongoAdapter implements DatabaseAdapter {
     return filter;
   }
 
+  /**
+   * Normalize a value that might be an ObjectId
+   * Handles single values, arrays, and already-ObjectId instances
+   */
+  private normalizeIdValue(value: any): any {
+    if (value === null || value === undefined) return value;
+
+    // Handle arrays (for IN queries)
+    if (Array.isArray(value)) {
+      return value.map((v) => this.normalizeIdValue(v));
+    }
+
+    // Already an ObjectId
+    if (typeof value === "object" && typeof value.toHexString === "function") {
+      return value;
+    }
+
+    // String that looks like ObjectId
+    if (
+      typeof value === "string" &&
+      value.length === 24 &&
+      /^[a-fA-F0-9]{24}$/.test(value)
+    ) {
+      return this.normalizeId(value);
+    }
+
+    return value;
+  }
+
   private buildProjection(columns?: string[]): any {
     if (!columns || columns.length === 0 || columns.includes("*")) {
       return null;
@@ -310,6 +341,9 @@ export class MongoAdapter implements DatabaseAdapter {
 
   private normalizeId(id: any): any {
     const { ObjectId } = ModuleLoader.require("mongodb");
+    if (Array.isArray(id)) {
+      return id.map((item) => this.normalizeId(item));
+    }
     if (id instanceof ObjectId) return id;
     if (typeof id === "string" && ObjectId.isValid(id)) {
       return new ObjectId(id);

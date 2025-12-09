@@ -6,7 +6,7 @@ import { Blueprint } from "./Blueprint";
  * Provides fluent interface for creating and modifying database tables
  */
 declare global {
-  var ArcanaDatabaseAdapter: DatabaseAdapter | undefined;
+  var ArcanajsDatabaseAdapter: DatabaseAdapter | undefined;
 }
 
 /**

@@ -28,6 +28,13 @@ export class QueryBuilder<T = any> extends Macroable {
   }
 
   /**
+   * Get the database adapter
+   */
+  getAdapter(): any {
+    return this.adapter;
+  }
+
+  /**
    * Select specific columns
    */
   select(...columns: string[]): this {
@@ -247,23 +254,26 @@ export class QueryBuilder<T = any> extends Macroable {
       joins: this.joinClauses,
     };
 
-    const results = await this.adapter.select(this.tableName, options);
+    const rows = await this.adapter.select(this.tableName, options);
 
-    if (this.eagerLoads.length > 0 && this.model) {
-      return await this.eagerLoadRelations(results);
+    if (!this.model) {
+      return rows;
     }
 
-    return results;
+    const models = rows.map((row: any) => this.model.hydrate(row)) as T[];
+
+    if (this.eagerLoads.length > 0) {
+      await this.eagerLoadRelations(models);
+    }
+
+    return models;
   }
 
   /**
    * Eager load relations
    */
-  protected async eagerLoadRelations(results: any[]): Promise<any[]> {
-    if (results.length === 0) return results;
-
-    // Hydrate models first
-    const models = results.map((result) => this.model.hydrate(result));
+  protected async eagerLoadRelations(models: any[]): Promise<any[]> {
+    if (models.length === 0) return models;
 
     for (const relationName of this.eagerLoads) {
       // Check if relation exists on model

@@ -10,11 +10,10 @@ class UserController {
       const userId = req.params.id;
       console.log(userId);
       const user = await this.userService.findById(userId);
-
+      console.log(user);
       if (!user) {
-        return res.error();
+        return res.error("User not found", 404);
       }
-
       return res.success(user, "User retrieved successfully");
     } catch (error) {
       return res.error(

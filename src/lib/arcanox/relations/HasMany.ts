@@ -15,6 +15,12 @@ export class HasMany<R extends Model = any> extends Relation<R> {
     super(query, parent);
     this.foreignKey = foreignKey;
     this.localKey = localKey;
+    if (!this.foreignKey) {
+      console.error("HasMany: foreignKey is undefined!", {
+        foreignKey,
+        localKey,
+      });
+    }
   }
 
   addConstraints(): void {
@@ -33,7 +39,7 @@ export class HasMany<R extends Model = any> extends Relation<R> {
     const dictionary: Record<string, R[]> = {};
 
     results.forEach((result) => {
-      const key = result.getAttribute(this.foreignKey);
+      const key = this.normalizeKey(result.getAttribute(this.foreignKey));
       if (!dictionary[key]) {
         dictionary[key] = [];
       }
@@ -41,7 +47,7 @@ export class HasMany<R extends Model = any> extends Relation<R> {
     });
 
     models.forEach((model) => {
-      const key = model.getAttribute(this.localKey);
+      const key = this.normalizeKey(model.getAttribute(this.localKey));
       if (dictionary[key]) {
         model.setRelation(relation, dictionary[key]);
       } else {

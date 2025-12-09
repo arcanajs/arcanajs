@@ -1,4 +1,5 @@
 import { Model } from "arcanajs/arcanox";
+import Comment from "./Comment";
 
 /**
  * User Model
@@ -10,12 +11,16 @@ import { Model } from "arcanajs/arcanox";
  * - Soft deletes
  * - Accessors
  */
-export class User extends Model {
+class User extends Model {
   protected table = "users";
   protected fillable = ["name", "email", "password"];
   protected hidden = ["password"];
   protected timestamps = true;
   protected softDeletes = true;
+
+  comments() {
+    return this.hasMany(Comment);
+  }
 
   // Attribute casting
   protected casts = {

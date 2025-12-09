@@ -1,4 +1,5 @@
 import { Seeder } from "arcanajs/arcanox";
+import CommentSeeder from "./CommentSeeder";
 import { UserSeeder } from "./UserSeeder";
 
 /**
@@ -8,6 +9,7 @@ import { UserSeeder } from "./UserSeeder";
 export class DatabaseSeeder extends Seeder {
   async run() {
     await this.call(UserSeeder);
+    await this.call(CommentSeeder);
   }
 }
 

@@ -177,6 +177,15 @@ export class Blueprint {
   }
 
   /**
+   * Add ObjectId column (MongoDB specific)
+   */
+  objectId(name: string): ColumnBuilder {
+    const col = new ColumnBuilder(name, "objectId");
+    this.columns.push(col.getDefinition());
+    return col;
+  }
+
+  /**
    * Add string column
    */
   string(name: string, length: number = 255): ColumnBuilder {
