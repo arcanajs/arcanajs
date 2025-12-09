@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import * as nodemailer from "nodemailer";
+import { ModuleLoader } from "../../utils/ModuleLoader";
 import { Mailable } from "./Mailable";
 import { MailQueue } from "./queue/MailQueue";
 import {
@@ -284,7 +285,9 @@ export class MailService {
     config: PostmarkConfig
   ): MailTransporter {
     try {
-      const postmarkTransport = require("nodemailer-postmark-transport");
+      const postmarkTransport = ModuleLoader.require(
+        "nodemailer-postmark-transport"
+      );
       return nodemailer.createTransport(
         postmarkTransport({
           auth: {

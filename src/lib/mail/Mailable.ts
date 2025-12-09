@@ -1,3 +1,4 @@
+import { ModuleLoader } from "../../utils/ModuleLoader";
 import { MailAttachment, MailMessage, MailSendResult } from "./types";
 
 /**
@@ -405,7 +406,7 @@ export abstract class Mailable {
 
     try {
       // Try to use marked if available
-      const marked = require("marked");
+      const marked = ModuleLoader.require("marked");
       const html = marked.parse(markdownContent);
 
       // Wrap in basic email template

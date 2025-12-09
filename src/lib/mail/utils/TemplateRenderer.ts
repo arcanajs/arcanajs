@@ -3,6 +3,7 @@ import * as ejs from "ejs";
 import * as fs from "fs";
 import { htmlToText as convertHtmlToText } from "html-to-text";
 import * as path from "path";
+import { ModuleLoader } from "../../../utils/ModuleLoader";
 import { MailTemplateConfig } from "../types";
 
 /**
@@ -437,7 +438,7 @@ export class TemplateRenderer {
     data: Record<string, any>
   ): Promise<string> {
     try {
-      const mjml = require("mjml");
+      const mjml = ModuleLoader.require("mjml");
 
       // First render as EJS to handle data interpolation
       let mjmlContent = fs.readFileSync(templatePath, "utf-8");
@@ -500,7 +501,7 @@ export class TemplateRenderer {
    */
   private static async inlineCss(html: string): Promise<string> {
     try {
-      const juice = require("juice");
+      const juice = ModuleLoader.require("juice");
       return juice(html, {
         removeStyleTags: true,
         preserveMediaQueries: true,
