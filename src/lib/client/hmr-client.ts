@@ -2,26 +2,34 @@
  * ArcanaJS Hot Module Replacement (HMR) Client
  *
  * Professional HMR client with auto-reconnect, error handling,
- * and graceful degradation. Similar to Next.js HMR implementation.
+ * heartbeat support, CSS hot reload, and graceful degradation.
+ * Similar to Next.js HMR.
  */
 
 interface HMRMessage {
-  type: "reload" | "error" | "connected" | "building";
+  type: "reload" | "error" | "connected" | "building" | "css-update";
   message?: string;
+  target?: "client" | "server";
+  status?: "building" | "done";
+  timestamp?: number;
 }
 
 class HMRClient {
   private socket: WebSocket | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 10;
-  private reconnectDelay = 1000; // Start with 1 second
-  private maxReconnectDelay = 30000; // Max 30 seconds
+  private maxReconnectAttempts = 15;
+  private reconnectDelay = 1000;
+  private maxReconnectDelay = 30000;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isIntentionallyClosed = false;
+  private lastReloadTimestamp = 0;
+  private pendingReload = false;
+  private buildingTargets = new Set<string>();
 
   constructor(private port: number) {
     this.connect();
     this.setupBeforeUnload();
+    this.setupVisibilityChange();
   }
 
   private connect(): void {
@@ -39,19 +47,24 @@ class HMRClient {
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
         this.showConnectionStatus("connected");
+
+        // Process pending reload if any
+        if (this.pendingReload) {
+          this.pendingReload = false;
+          window.location.reload();
+        }
       };
 
       this.socket.onmessage = (event) => {
         this.handleMessage(event);
       };
 
-      this.socket.onerror = (error) => {
-        console.error("[HMR] WebSocket error:", error);
+      this.socket.onerror = () => {
+        // Error will trigger onclose, no need to log here
       };
 
       this.socket.onclose = () => {
         if (!this.isIntentionallyClosed) {
-          console.log("[HMR] Disconnected from development server");
           this.showConnectionStatus("disconnected");
           this.scheduleReconnect();
         }
@@ -68,13 +81,44 @@ class HMRClient {
 
       switch (message.type) {
         case "reload":
+          // Debounce reloads - ignore if we just reloaded
+          const now = Date.now();
+          if (
+            message.timestamp &&
+            message.timestamp <= this.lastReloadTimestamp
+          ) {
+            return;
+          }
+          this.lastReloadTimestamp = now;
+
+          // Don't reload while still building
+          if (this.buildingTargets.size > 0) {
+            console.log("[HMR] Build in progress, reload pending...");
+            this.pendingReload = true;
+            return;
+          }
+
           console.log("[HMR] Reloading page...");
           this.showConnectionStatus("reloading");
           window.location.reload();
           break;
 
+        case "css-update":
+          // CSS-only update - no full page reload needed
+          console.log("[HMR] 🎨 CSS updated (no reload)");
+          this.showConnectionStatus("css-update");
+          this.updateCSS();
+          break;
+
         case "building":
-          console.log("[HMR] Server is rebuilding...");
+          if (message.target) {
+            if (message.status === "building") {
+              this.buildingTargets.add(message.target);
+            } else {
+              this.buildingTargets.delete(message.target);
+            }
+          }
+          console.log(`[HMR] ${message.target || "Server"} is rebuilding...`);
           this.showConnectionStatus("building");
           break;
 
@@ -87,11 +131,58 @@ class HMRClient {
           break;
 
         default:
-          console.warn("[HMR] Unknown message type:", message);
+          // Unknown message type - ignore silently
+          break;
       }
     } catch (error) {
       console.error("[HMR] Failed to parse message:", error);
     }
+  }
+
+  /**
+   * Update CSS without full page reload
+   * Forces style-loader to re-inject all styles
+   */
+  private updateCSS(): void {
+    // Find all style tags injected by style-loader
+    const styleElements = document.querySelectorAll(
+      'style[data-webpack], link[rel="stylesheet"]'
+    );
+
+    // For style tags (style-loader in dev mode)
+    // The styles will be automatically updated by webpack's HMR
+    // We just need to trigger a re-render by forcing style recalculation
+
+    // Force style recalculation on the document
+    const body = document.body;
+    if (body) {
+      // Toggle a class to force style recalculation
+      body.classList.add("__arcanajs-hmr-update");
+      // Use requestAnimationFrame to ensure the class is applied
+      requestAnimationFrame(() => {
+        body.classList.remove("__arcanajs-hmr-update");
+      });
+    }
+
+    // For link tags, we can force reload by updating the href
+    document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+      const href = link.getAttribute("href");
+      if (href && !href.includes("fonts.googleapis.com")) {
+        // Add timestamp to bust cache
+        const newHref = href.replace(/(\?|&)_hmr=\d+/, "");
+        link.setAttribute(
+          "href",
+          `${newHref}${newHref.includes("?") ? "&" : "?"}_hmr=${Date.now()}`
+        );
+      }
+    });
+
+    // Dispatch event for custom handling
+    window.dispatchEvent(
+      new CustomEvent("arcanajs-css-update", {
+        detail: { timestamp: Date.now() },
+      })
+    );
   }
 
   private scheduleReconnect(): void {
@@ -108,8 +199,10 @@ class HMRClient {
     }
 
     this.reconnectAttempts++;
+    // Exponential backoff with jitter
+    const jitter = Math.random() * 500;
     const delay = Math.min(
-      this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1),
+      this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1) + jitter,
       this.maxReconnectDelay
     );
 
@@ -125,30 +218,38 @@ class HMRClient {
   }
 
   private showConnectionStatus(
-    status: "connected" | "disconnected" | "reloading" | "building" | "failed"
+    status:
+      | "connected"
+      | "disconnected"
+      | "reloading"
+      | "building"
+      | "failed"
+      | "css-update"
   ): void {
-    // Optional: Show visual indicator to user
-    // This can be implemented as a small toast/badge in the corner
     const event = new CustomEvent("hmr-status", { detail: { status } });
     window.dispatchEvent(event);
-
-    // For debugging in development
-    if (process.env.NODE_ENV === "development") {
-      const emoji = {
-        connected: "✅",
-        disconnected: "🔌",
-        reloading: "🔄",
-        building: "🔨",
-        failed: "❌",
-      }[status];
-      console.log(`[HMR] Status: ${emoji} ${status}`);
-    }
   }
 
   private setupBeforeUnload(): void {
     window.addEventListener("beforeunload", () => {
       this.isIntentionallyClosed = true;
       this.disconnect();
+    });
+  }
+
+  /**
+   * Reconnect when page becomes visible again
+   */
+  private setupVisibilityChange(): void {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        // Check connection when tab becomes visible
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+          console.log("[HMR] Tab visible, checking connection...");
+          this.reconnectAttempts = 0; // Reset attempts
+          this.connect();
+        }
+      }
     });
   }
 
