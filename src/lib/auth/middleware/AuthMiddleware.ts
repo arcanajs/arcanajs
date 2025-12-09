@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Middleware } from "../../validation/http/Middleware";
 import { JWTError, JWTService } from "../JWTService";
-import { DecodedToken } from "../types";
 
 /**
  * Authentication Middleware
@@ -40,7 +39,7 @@ export class AuthMiddleware implements Middleware {
 
       // Add header hint if token is near expiry (client can proactively refresh)
       if (payload.isNearExpiry) {
-        res.setHeader(this.NEAR_EXPIRY_HEADER, "true");
+        res.setHeader(AuthMiddleware.NEAR_EXPIRY_HEADER, "true");
       }
 
       next();
@@ -148,15 +147,5 @@ export class AuthMiddleware implements Middleware {
       error: response.message,
       code: err.code,
     });
-  }
-}
-
-// Extend Express Request type
-declare global {
-  namespace Express {
-    interface Request {
-      user?: DecodedToken;
-      token?: string;
-    }
   }
 }

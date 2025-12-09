@@ -210,7 +210,9 @@ export class JWTService {
     const verifyOptions: VerifyOptions = {
       algorithms: [algorithm],
       issuer: this.config.issuer,
-      audience: this.config.audience,
+      audience: Array.isArray(this.config.audience)
+        ? (this.config.audience as [string, ...string[]])
+        : this.config.audience,
       ...options,
     };
 

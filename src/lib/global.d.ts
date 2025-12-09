@@ -1,5 +1,5 @@
 import { DatabaseAdapter } from "./arcanox/types";
-import { JWTPayload } from "./auth/types";
+import { DecodedToken } from "./auth/types";
 
 declare const __non_webpack_require__: NodeJS.Require;
 
@@ -7,7 +7,7 @@ declare global {
   var ArcanaJSDatabaseAdapter: DatabaseAdapter;
   namespace Express {
     interface Request {
-      user?: JWTPayload;
+      user?: DecodedToken;
       token?: string;
     }
 
