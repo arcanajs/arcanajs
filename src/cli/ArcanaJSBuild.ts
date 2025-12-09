@@ -503,67 +503,93 @@ export class ArcanaJSBuild {
    */
   private startDevServer(): Promise<void> {
     return new Promise((resolve) => {
-      // Kill existing server
+      // Kill existing server and wait for it to exit
       if (this.serverProcess) {
-        this.serverProcess.kill();
+        const oldProcess = this.serverProcess;
         this.serverProcess = null;
-      }
 
-      const serverPath = path.resolve(this.cwd, ".arcanajs/server/server.js");
+        // Wait for old process to exit before starting new one
+        const killTimeout = setTimeout(() => {
+          // Force kill if graceful shutdown takes too long
+          try {
+            oldProcess.kill("SIGKILL");
+          } catch {
+            // Process may already be dead
+          }
+        }, 3000);
 
-      if (!fs.existsSync(serverPath)) {
-        console.error("❌ Server bundle not found");
-        resolve();
+        oldProcess.once("close", () => {
+          clearTimeout(killTimeout);
+          this.startNewDevServer(resolve);
+        });
+
+        // Send SIGTERM for graceful shutdown
+        oldProcess.kill("SIGTERM");
         return;
       }
 
-      this.serverProcess = spawn("node", [serverPath], {
-        stdio: ["inherit", "pipe", "inherit"],
-        env: {
-          ...process.env,
-          ARCANAJS_HMR_PORT: this.hmrPort?.toString(),
-        },
-      });
-
-      let resolved = false;
-
-      this.serverProcess.stdout?.on("data", (data) => {
-        const output = data.toString();
-        process.stdout.write(output);
-
-        // Resolve when server is ready
-        if (!resolved && output.includes("Server is running")) {
-          resolved = true;
-          resolve();
-        }
-      });
-
-      this.serverProcess.on("error", (error) => {
-        console.error("❌ Server error:", error);
-        if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-      });
-
-      this.serverProcess.on("close", (code) => {
-        if (code !== 0 && code !== null) {
-          console.error(`⚠️  Dev server exited with code ${code}`);
-        }
-        if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-      });
-
-      // Timeout fallback
-      setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-      }, 10000);
+      this.startNewDevServer(resolve);
     });
+  }
+
+  /**
+   * Start a new dev server process
+   */
+  private startNewDevServer(resolve: () => void): void {
+    const serverPath = path.resolve(this.cwd, ".arcanajs/server/server.js");
+
+    if (!fs.existsSync(serverPath)) {
+      console.error("❌ Server bundle not found");
+      resolve();
+      return;
+    }
+
+    this.serverProcess = spawn("node", [serverPath], {
+      stdio: ["inherit", "pipe", "inherit"],
+      env: {
+        ...process.env,
+        ARCANAJS_HMR_PORT: this.hmrPort?.toString(),
+      },
+    });
+
+    let resolved = false;
+
+    this.serverProcess.stdout?.on("data", (data) => {
+      const output = data.toString();
+      process.stdout.write(output);
+
+      // Resolve when server is ready
+      if (!resolved && output.includes("Server is running")) {
+        resolved = true;
+        resolve();
+      }
+    });
+
+    this.serverProcess.on("error", (error) => {
+      console.error("❌ Server error:", error);
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    });
+
+    this.serverProcess.on("close", (code) => {
+      if (code !== 0 && code !== null) {
+        console.error(`⚠️  Dev server exited with code ${code}`);
+      }
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    });
+
+    // Timeout fallback
+    setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    }, 10000);
   }
 
   /**

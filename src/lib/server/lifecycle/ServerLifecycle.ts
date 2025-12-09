@@ -70,20 +70,23 @@ export class ServerLifecycle {
   private setupSignalHandlers(): void {
     const shutdown = async (signal: string) => {
       if (this.isShuttingDown) return;
+      this.isShuttingDown = true;
       console.log(`\n⚠ Received ${signal}, shutting down gracefully...`);
 
-      // Force exit after 10s if graceful shutdown hangs
+      // Force exit after 5s if graceful shutdown hangs (reduced from 10s for dev mode)
       const forceExit = setTimeout(() => {
         console.error("✗ Shutdown timed out, forcing exit");
         process.exit(1);
-      }, 10000);
+      }, 5000);
       forceExit.unref();
 
       try {
         await this.stop();
+        clearTimeout(forceExit);
         console.log("✓ Shutdown complete");
         process.exit(0);
       } catch (err) {
+        clearTimeout(forceExit);
         console.error("✗ Error during shutdown:", err);
         process.exit(1);
       }

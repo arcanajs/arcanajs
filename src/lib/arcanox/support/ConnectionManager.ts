@@ -135,20 +135,12 @@ export class ConnectionManager extends EventEmitter {
 
   /**
    * Setup process handlers for graceful shutdown
+   * Note: We only handle beforeExit here. SIGINT/SIGTERM are handled
+   * by ServerLifecycle to ensure proper shutdown order.
    */
   private setupProcessHandlers(): void {
     process.on("beforeExit", async () => {
       await this.disconnectAll();
-    });
-
-    process.on("SIGINT", async () => {
-      await this.disconnectAll();
-      process.exit(0);
-    });
-
-    process.on("SIGTERM", async () => {
-      await this.disconnectAll();
-      process.exit(0);
     });
   }
 
