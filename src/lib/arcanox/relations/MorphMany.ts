@@ -3,29 +3,35 @@ import { QueryBuilder } from "../QueryBuilder";
 import { Relation } from "./Relation";
 
 /**
- * HasMany Relationship
- * Defines a one-to-many relationship where related models contain the foreign key
+ * MorphMany Relationship
+ * Defines a polymorphic one-to-many relationship
  */
-export class HasMany<R extends Model = any> extends Relation<R> {
+export class MorphMany<R extends Model = any> extends Relation<R> {
+  protected morphType: string;
+  protected morphClass: string;
   protected foreignKey: string;
   protected localKey: string;
 
   constructor(
     query: QueryBuilder<R>,
     parent: Model,
+    morphType: string,
     foreignKey: string,
-    localKey: string
+    localKey: string = "id"
   ) {
     super(query, parent);
+    this.morphType = morphType;
     this.foreignKey = foreignKey;
     this.localKey = localKey;
+    this.morphClass = (parent.constructor as typeof Model).getTable();
+  }
 
-    if (!this.foreignKey) {
-      console.error("HasMany: foreignKey is undefined!", {
-        foreignKey,
-        localKey,
-      });
-    }
+  /**
+   * Set the morph class name
+   */
+  setMorphClass(morphClass: string): this {
+    this.morphClass = morphClass;
+    return this;
   }
 
   /**
@@ -33,6 +39,8 @@ export class HasMany<R extends Model = any> extends Relation<R> {
    */
   addConstraints(): void {
     const localValue = this.parent.getAttribute(this.localKey);
+
+    this.query.where(this.morphType, "=", this.morphClass);
     this.query.where(this.foreignKey, "=", localValue);
   }
 
@@ -43,6 +51,8 @@ export class HasMany<R extends Model = any> extends Relation<R> {
     const keys = models
       .map((model) => model.getAttribute(this.localKey))
       .filter((k) => k !== null && k !== undefined);
+
+    this.query.where(this.morphType, "=", this.morphClass);
     this.query.whereIn(this.foreignKey, keys);
   }
 
@@ -52,18 +62,18 @@ export class HasMany<R extends Model = any> extends Relation<R> {
   match(models: Model[], results: R[], relation: string): Model[] {
     const dictionary: Record<string, R[]> = {};
 
-    results.forEach((result) => {
+    for (const result of results) {
       const key = this.normalizeKey(result.getAttribute(this.foreignKey));
       if (!dictionary[key]) {
         dictionary[key] = [];
       }
       dictionary[key].push(result);
-    });
+    }
 
-    models.forEach((model) => {
+    for (const model of models) {
       const key = this.normalizeKey(model.getAttribute(this.localKey));
       model.setRelation(relation, dictionary[key] || []);
-    });
+    }
 
     return models;
   }
@@ -73,6 +83,20 @@ export class HasMany<R extends Model = any> extends Relation<R> {
    */
   async getResults(): Promise<R[]> {
     return this.get();
+  }
+
+  /**
+   * Get the morph type column name
+   */
+  getMorphType(): string {
+    return this.morphType;
+  }
+
+  /**
+   * Get the morph class name
+   */
+  getMorphClass(): string {
+    return this.morphClass;
   }
 
   /**
@@ -100,17 +124,20 @@ export class HasMany<R extends Model = any> extends Relation<R> {
   }
 
   /**
-   * Get the qualified parent key name
+   * Get the qualified morph type name
    */
-  getQualifiedParentKeyName(): string {
-    const parentTable = (this.parent.constructor as typeof Model).getTable();
-    return `${parentTable}.${this.localKey}`;
+  getQualifiedMorphType(): string {
+    const relatedTable = (
+      this.related.prototype.constructor as typeof Model
+    ).getTable();
+    return `${relatedTable}.${this.morphType}`;
   }
 
   /**
    * Set the foreign attributes for creating a new model
    */
   protected setForeignAttributesForCreate(model: R): void {
+    (model as any).setAttribute(this.morphType, this.morphClass);
     (model as any).setAttribute(
       this.foreignKey,
       this.parent.getAttribute(this.localKey)
@@ -127,7 +154,7 @@ export class HasMany<R extends Model = any> extends Relation<R> {
   }
 
   /**
-   * Save multiple new models and attach them to the parent
+   * Save multiple new models
    */
   async saveMany(models: R[]): Promise<R[]> {
     const saved: R[] = [];
@@ -155,21 +182,10 @@ export class HasMany<R extends Model = any> extends Relation<R> {
   }
 
   /**
-   * Find a specific model by ID in the relationship
+   * Find a specific model in the relationship
    */
   async findInRelation(id: any): Promise<R | null> {
     return this.where("id", id).first();
-  }
-
-  /**
-   * Find or fail a specific model by ID in the relationship
-   */
-  async findOrFail(id: any): Promise<R> {
-    const result = await this.findInRelation(id);
-    if (!result) {
-      throw new Error(`Related model not found with id: ${id}`);
-    }
-    return result;
   }
 
   /**
@@ -275,10 +291,22 @@ export class HasMany<R extends Model = any> extends Relation<R> {
   }
 
   /**
-   * Get IDs of all related models
+   * Add a constraint for existence queries
    */
-  async pluckIds(): Promise<any[]> {
-    const results = await this.get();
-    return results.map((r) => (r as any).id);
+  getRelationExistenceQuery(
+    query: QueryBuilder<R>,
+    parentQuery: QueryBuilder<any>,
+    _columns: string[] = ["*"]
+  ): QueryBuilder<R> {
+    const parentTable = (this.parent.constructor as typeof Model).getTable();
+
+    query.where(this.morphType, "=", this.morphClass);
+    query.whereColumn(
+      `${query.getTable()}.${this.foreignKey}`,
+      "=",
+      `${parentTable}.${this.localKey}`
+    );
+
+    return query;
   }
 }
