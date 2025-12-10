@@ -26,7 +26,7 @@ import {
   getDevtool,
   getServerEntry,
   getServerPlugins,
-} from "./build/index";
+} from "./webpack-utils";
 
 const cwd = process.cwd();
 
