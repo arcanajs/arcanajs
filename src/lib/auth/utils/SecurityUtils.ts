@@ -390,7 +390,7 @@ export class SecurityUtils {
   static sanitizeString(input: string): string {
     return input
       .replace(/[<>]/g, "") // Remove angle brackets
-      .replace(/javascript:/gi, "") // Remove javascript: protocol
+      .replace(/(?:javascript:|data:|vbscript:)/gi, "") // Remove dangerous protocols
       .replace(/on\w+=/gi, "") // Remove event handlers
       .trim();
   }
