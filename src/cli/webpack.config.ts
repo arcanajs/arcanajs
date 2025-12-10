@@ -26,7 +26,7 @@ import {
   getDevtool,
   getServerEntry,
   getServerPlugins,
-} from "./build";
+} from "./build/index";
 
 const cwd = process.cwd();
 
