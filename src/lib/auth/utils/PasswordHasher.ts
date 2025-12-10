@@ -278,11 +278,15 @@ export class PasswordHasher {
       );
     }
 
-    const randomBytes = crypto.randomBytes(length);
     let password = "";
-
-    for (let i = 0; i < length; i++) {
-      password += charset[randomBytes[i] % charset.length];
+    const charsetLength = charset.length;
+    const maxUnbiasedValue = Math.floor(256 / charsetLength) * charsetLength;
+    while (password.length < length) {
+      const randomByte = crypto.randomBytes(1)[0];
+      if (randomByte >= maxUnbiasedValue) {
+        continue; // reject biased byte
+      }
+      password += charset[randomByte % charsetLength];
     }
 
     return password;
