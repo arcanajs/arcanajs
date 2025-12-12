@@ -15,7 +15,6 @@ export interface CacheConfig {
 
 /**
  * Creates optimized cache configuration for webpack
- * Inspired by Next.js build performance
  */
 export function createCacheConfig(
   target: "client" | "server",

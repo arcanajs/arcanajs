@@ -101,7 +101,7 @@ export function showError(options: {
 }
 
 /**
- * useError - Error handling hook (Nuxt-style)
+ * useError - Error handling hook
  *
  * Provides access to the global error state and methods
  * to create/clear errors. Works with ArcanaJS error pages.

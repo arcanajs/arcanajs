@@ -21,7 +21,7 @@ export interface UseAsyncDataReturn<T> extends UseFetchReturn<T> {
 }
 
 /**
- * useAsyncData - SSR-aware data fetching hook (Nuxt-style)
+ * useAsyncData - SSR-aware data fetching hook
  *
  * This hook is designed for server-side rendering scenarios where
  * data can be pre-fetched on the server and hydrated on the client.

@@ -47,7 +47,6 @@ export interface BuildOptions {
 
 /**
  * ArcanaJS Build System
- * Professional build system inspired by Next.js
  */
 export class ArcanaJSBuild {
   private cwd: string;

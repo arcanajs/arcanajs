@@ -1,9 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState as reactUseState,
-  ReactNode,
-} from "react";
+import React, { ReactNode, useState as reactUseState, useContext } from "react";
 import { createSingletonContext } from "../utils/createSingletonContext";
 
 /**
@@ -37,7 +32,7 @@ export const SharedStateProvider: React.FC<{
 };
 
 /**
- * useState - SSR-hydrated shared state hook (Nuxt-style)
+ * useState - SSR-hydrated shared state hook
  *
  * Creates reactive state that can be shared across components and
  * persists across SSR hydration. Unlike React's useState, this state

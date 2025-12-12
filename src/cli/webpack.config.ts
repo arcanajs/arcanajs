@@ -32,7 +32,6 @@ const cwd = process.cwd();
 
 /**
  * Creates optimized client webpack configuration
- * Inspired by Next.js build performance
  */
 export function createClientConfig(): webpack.Configuration {
   const isProduction = process.env.NODE_ENV === "production";

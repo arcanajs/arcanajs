@@ -24,7 +24,7 @@ export type CommonHeaderName =
   | (string & {});
 
 /**
- * useRequestHeaders - Access request headers (Nuxt-style)
+ * useRequestHeaders - Access request headers
  *
  * On the server, returns actual request headers from the incoming request.
  * On the client, returns an empty object (headers are not available).

@@ -26,7 +26,7 @@ export { default as useParams } from "./shared/hooks/useParams";
 export { default as useQuery } from "./shared/hooks/useQuery";
 export { default as useRouter } from "./shared/hooks/useRouter";
 
-// Data fetching hooks (Next.js/Nuxt-style)
+// Data fetching hooks 
 export { default as useAsyncData } from "./shared/hooks/useAsyncData";
 export { default as useFetch } from "./shared/hooks/useFetch";
 export { default as useLazyFetch } from "./shared/hooks/useLazyFetch";
@@ -35,7 +35,7 @@ export { default as useLazyFetch } from "./shared/hooks/useLazyFetch";
 export { default as useLoading } from "./shared/hooks/useLoading";
 export { default as useTransition } from "./shared/hooks/useTransition";
 
-// SSR-compatible hooks (Nuxt-style)
+// SSR-compatible hooks 
 export { default as useCookie } from "./shared/hooks/useCookie";
 export { default as useError } from "./shared/hooks/useError";
 export { default as useId } from "./shared/hooks/useId";

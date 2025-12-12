@@ -3,7 +3,6 @@
  *
  * Professional HMR client with auto-reconnect, error handling,
  * heartbeat support, CSS hot reload, and graceful degradation.
- * Similar to Next.js HMR.
  */
 
 interface HMRMessage {

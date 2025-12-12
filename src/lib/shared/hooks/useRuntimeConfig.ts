@@ -68,7 +68,7 @@ export function getPublicRuntimeConfig(): RuntimeConfig {
 }
 
 /**
- * useRuntimeConfig - Access runtime configuration (Nuxt-style)
+ * useRuntimeConfig - Access runtime configuration
  *
  * Returns the runtime configuration object.
  * On the client, only public config is available.

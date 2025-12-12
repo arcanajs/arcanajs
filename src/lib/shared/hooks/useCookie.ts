@@ -109,7 +109,7 @@ function removeCookie(name: string, options: UseCookieOptions = {}): void {
 }
 
 /**
- * useCookie - SSR-safe cookie management hook (Nuxt-style)
+ * useCookie - SSR-safe cookie management hook
  *
  * Provides reactive cookie access with read/write capabilities.
  * SSR-safe: returns null on server, hydrates on client.

@@ -79,7 +79,7 @@ const fetchCache = new Map<
 const inFlightRequests = new Map<string, Promise<any>>();
 
 /**
- * useFetch - Professional data fetching hook similar to Next.js/Nuxt
+ * useFetch - Professional data fetching hook 
  *
  * Features:
  * - Automatic caching with configurable TTL
