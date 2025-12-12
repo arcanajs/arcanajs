@@ -5,6 +5,8 @@ export interface RouterContextType {
   navigateTo: (url: string) => void;
   // optional async variant for consumers that want a promise
   navigateToAsync?: (url: string) => Promise<void>;
+  /** Prefetch a route for faster navigation */
+  prefetchRoute?: (url: string) => Promise<void>;
   currentPage: string;
   currentUrl: string;
   params: Record<string, string>;

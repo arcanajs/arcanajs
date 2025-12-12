@@ -24,6 +24,48 @@ export { default as Route } from "./server/Router";
 export type { Middleware } from "./validation/http/Middleware";
 
 // ============================================================================
+// SSR Context & Utilities (for server-side rendering)
+// ============================================================================
+
+// Request context for SSR
+export {
+  createRequestContext,
+  getClientRequestContext,
+  RequestContext,
+  RequestContextProvider,
+} from "./shared/context/RequestContext";
+export type { RequestContextType } from "./shared/context/RequestContext";
+
+// Shared state for SSR
+export {
+  clearSharedState,
+  getSharedState,
+  setSharedState,
+  SharedStateContext,
+  SharedStateProvider,
+} from "./shared/hooks/useState";
+
+// Runtime config
+export {
+  getPublicRuntimeConfig,
+  getRuntimeConfig,
+  RuntimeConfigContext,
+  setRuntimeConfig,
+} from "./shared/hooks/useRuntimeConfig";
+export type { RuntimeConfig } from "./shared/hooks/useRuntimeConfig";
+
+// Error handling
+export {
+  clearGlobalError,
+  createError,
+  ErrorContext,
+  getGlobalError,
+  setGlobalError,
+  showError,
+} from "./shared/hooks/useError";
+export type { ArcanaError } from "./shared/hooks/useError";
+
+// ============================================================================
 // Server Factory Function
 // ============================================================================
 
