@@ -10,8 +10,8 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 const cwd = process.cwd();
 
-// SWC Configuration for high-performance builds
-const swcConfig = {
+// SWC Configuration factory
+const getSwcConfig = (isDev: boolean) => ({
   jsc: {
     parser: {
       syntax: "typescript",
@@ -24,6 +24,7 @@ const swcConfig = {
       decoratorMetadata: true,
       react: {
         runtime: "automatic",
+        development: isDev,
       },
     },
     target: "es2020",
@@ -31,7 +32,7 @@ const swcConfig = {
   module: {
     type: "commonjs",
   },
-};
+});
 
 // Base cache configuration
 const baseCache: webpack.FileCacheOptions = {
@@ -74,18 +75,6 @@ const commonConfig: webpack.Configuration = {
       "react-dom": path.resolve(cwd, "node_modules/react-dom"),
     },
   },
-  module: {
-    rules: [
-      {
-        test: /\.(ts|tsx|js|jsx)$/,
-        exclude: /node_modules/,
-        use: {
-          loader: "swc-loader",
-          options: swcConfig,
-        },
-      },
-    ],
-  },
   plugins: [],
   // Use non-eval sourcemaps to support strict CSP in consumer apps
   devtool: "cheap-module-source-map",
@@ -93,6 +82,18 @@ const commonConfig: webpack.Configuration = {
 
 const devConfig: webpack.Configuration = {
   ...commonConfig,
+  module: {
+    rules: [
+      {
+        test: /\.(ts|tsx|js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "swc-loader",
+          options: getSwcConfig(true),
+        },
+      },
+    ],
+  },
   mode: "development",
   name: "development",
   // Unique cache name for development build
@@ -132,6 +133,18 @@ const devConfig: webpack.Configuration = {
 
 const prodConfig: webpack.Configuration = {
   ...commonConfig,
+  module: {
+    rules: [
+      {
+        test: /\.(ts|tsx|js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "swc-loader",
+          options: getSwcConfig(false),
+        },
+      },
+    ],
+  },
   mode: "production",
   name: "production",
   // Unique cache name for production build
