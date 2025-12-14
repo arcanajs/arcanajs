@@ -120,7 +120,7 @@ function matchPattern(
 /**
  * Create dynamic router middleware for views
  *
- * Supports Next.js-style file-based routing patterns:
+ * Supports file-based routing patterns:
  * - `/users` → 'users' view
  * - `/users/123` → 'users/[id]' view with params.id = '123'
  * - `/docs/a/b/c` → 'docs/[...slug]' view with params.slug = 'a/b/c'

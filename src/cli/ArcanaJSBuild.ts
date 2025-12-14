@@ -179,6 +179,7 @@ export class ArcanaJSBuild {
     // Watch client
     this.watchCompiler("Client", clientCompiler, (stats) => {
       this.isClientBuilding = false;
+      this.broadcastBuildStatus("done", "client");
 
       // Check if this is CSS-only change
       const cssOnly = stats ? this.isCSSOnlyChange(stats) : false;
@@ -201,6 +202,7 @@ export class ArcanaJSBuild {
 
     // Watch server and restart on build
     this.watchCompiler("Server", serverCompiler, async () => {
+      this.broadcastBuildStatus("done", "server");
       await this.startDevServer();
       this.isServerBuilding = false;
 

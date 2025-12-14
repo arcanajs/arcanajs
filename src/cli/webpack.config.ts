@@ -84,7 +84,12 @@ export function createClientConfig(): webpack.Configuration {
 
     devtool: getDevtool(isProduction, "client"),
 
-    watchOptions: createWatchOptions(),
+    watchOptions: createWatchOptions([
+      // Client doesn't need to rebuild when server code changes
+      path.resolve(cwd, "src/app"),
+      path.resolve(cwd, "src/config"),
+      path.resolve(cwd, "src/bootstrap/server.ts"),
+    ]),
 
     // Improved stats output
     stats: {
@@ -154,7 +159,14 @@ export function createServerConfig(): webpack.Configuration {
 
     devtool: getDevtool(isProduction, "server"),
 
-    watchOptions: createWatchOptions(),
+    watchOptions: createWatchOptions([
+      // Server doesn't need to rebuild when public assets change
+      path.resolve(cwd, "src/public"),
+      path.resolve(cwd, "src/bootstrap/client.ts"),
+      // Ignore views in dev to prevent server restarts (enables HMR)
+      // SSR will be stale until manual restart, but dev speed is prioritized
+      path.resolve(cwd, "src/resources/views"),
+    ]),
 
     stats: {
       preset: "errors-warnings",

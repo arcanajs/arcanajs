@@ -50,7 +50,7 @@ export interface UseSearchParamsReturn {
  * useSearchParams - Professional query parameter management
  *
  * Provides a React-friendly way to read and update URL search parameters.
- * Similar to Next.js useSearchParams but with setter functionality.
+ * to useSearchParams but with setter functionality.
  *
  * @example
  * ```tsx

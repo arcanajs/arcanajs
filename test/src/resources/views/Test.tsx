@@ -5,7 +5,7 @@ const Test = () => {
   const [count, setCount] = useState(0);
   useEffect(() => {
     console.log("Test component mounted");
-  },[count]);
+  }, [count]);
 
   return (
     <div>

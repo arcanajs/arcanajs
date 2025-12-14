@@ -98,10 +98,10 @@ export function createProdOptimization(
       cacheGroups: {
         default: false,
         vendors: false,
-        // React vendor chunk (Next.js style)
+        // React vendor chunk
         react: {
           test: /[\\/]node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/,
-          name: "framework", // Next.js calls the core React bundle "framework"
+          name: "framework",
           chunks: "all",
           priority: 40,
           enforce: true,
@@ -174,9 +174,23 @@ export function createOutputConfig(
 /**
  * Creates watch options optimized for performance
  */
-export function createWatchOptions(): webpack.Configuration["watchOptions"] {
+export function createWatchOptions(
+  extraIgnored: (string | RegExp)[] = []
+): webpack.Configuration["watchOptions"] {
+  const ignored: (string | RegExp)[] = [
+    // Always ignore these
+    "**/node_modules",
+    "**/.git/**",
+    // Absolute path ignores to prevent loops
+    path.resolve(cwd, ".arcanajs"),
+    path.resolve(cwd, "dist"),
+    path.resolve(cwd, "node_modules"),
+    // Add any extra ignores
+    ...extraIgnored,
+  ];
+
   return {
-    ignored: ["**/node_modules", "**/.arcanajs/**", "**/dist/**", "**/.git/**"],
+    ignored: ignored as any,
     // Use native file system events
     poll: false,
     // Aggregate changes
