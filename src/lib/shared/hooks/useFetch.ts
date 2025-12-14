@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { RouterContext } from "../context/RouterContext";
 
 /**
  * Fetch status type
@@ -79,7 +80,7 @@ const fetchCache = new Map<
 const inFlightRequests = new Map<string, Promise<any>>();
 
 /**
- * useFetch - Professional data fetching hook 
+ * useFetch - Professional data fetching hook
  *
  * Features:
  * - Automatic caching with configurable TTL
@@ -89,6 +90,7 @@ const inFlightRequests = new Map<string, Promise<any>>();
  * - Request deduplication
  * - Stale-while-revalidate pattern
  * - Refetch on focus/interval
+ * - Automatic CSRF token injection for state-changing requests
  *
  * @example
  * ```tsx
@@ -137,6 +139,11 @@ function useFetch<T = any>(
   const abortControllerRef = useRef<AbortController | null>(null);
   const mountedRef = useRef<boolean>(true);
   const retryCountRef = useRef<number>(0);
+
+  // Get CSRF token from RouterContext
+  // We use optional chaining because RouterContext might be null if used outside Provider (though rare with this hook)
+  const routerContext = useContext(RouterContext);
+  const csrfToken = routerContext?.csrfToken;
 
   // Resolve URL (supports getter function)
   const resolveUrl = useCallback((): string | null => {
@@ -255,12 +262,21 @@ function useFetch<T = any>(
           timeoutId = setTimeout(() => controller.abort(), timeout);
         }
 
+        // Prepare headers
+        const requestHeaders: Record<string, string> = {
+          "Content-Type": "application/json",
+          ...headers,
+        };
+
+        // Add CSRF token for state-changing methods if available
+        const stateChangingMethods = ["POST", "PUT", "DELETE", "PATCH"];
+        if (stateChangingMethods.includes(method.toUpperCase()) && csrfToken) {
+          requestHeaders["x-csrf-token"] = csrfToken;
+        }
+
         const response = await fetch(resolvedUrl, {
           method,
-          headers: {
-            "Content-Type": "application/json",
-            ...headers,
-          },
+          headers: requestHeaders,
           body: body ? JSON.stringify(body) : undefined,
           signal: controller.signal,
         });
@@ -353,6 +369,7 @@ function useFetch<T = any>(
     setToCache,
     onSuccess,
     onError,
+    csrfToken, // Add csrfToken to dependency array
   ]);
 
   // Clear data and error

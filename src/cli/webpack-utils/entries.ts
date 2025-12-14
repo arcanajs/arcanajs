@@ -116,7 +116,7 @@ export function getCommonAliases(
   viewsLoaderPath: string
 ): Record<string, string> {
   return {
-    "arcana-views": viewsLoaderPath,
+    "arcanajs-views": viewsLoaderPath,
     "@": path.resolve(cwd, "src"),
 
     // Force usage of the App's local React instance

@@ -61,7 +61,7 @@ const commonConfig: webpack.Configuration = {
   },
   externals: [
     nodeExternals({ allowlist: ["reflect-metadata"] }),
-    "arcana-views",
+    "arcanajs-views",
     "react",
     "react-dom",
     "react-dom/client",
