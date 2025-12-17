@@ -3,7 +3,6 @@
  *
  * Professional HMR client with auto-reconnect, error handling,
  * heartbeat support, CSS hot reload, and graceful degradation.
- * Similar to Next.js HMR.
  */
 
 interface HMRMessage {
@@ -116,6 +115,13 @@ class HMRClient {
               this.buildingTargets.add(message.target);
             } else {
               this.buildingTargets.delete(message.target);
+              if (this.buildingTargets.size === 0 && this.pendingReload) {
+                console.log(
+                  "[HMR] Build finished, processing pending reload..."
+                );
+                this.pendingReload = false;
+                window.location.reload();
+              }
             }
           }
           console.log(`[HMR] ${message.target || "Server"} is rebuilding...`);

@@ -15,7 +15,6 @@ export interface CacheConfig {
 
 /**
  * Creates optimized cache configuration for webpack
- * Inspired by Next.js build performance
  */
 export function createCacheConfig(
   target: "client" | "server",
@@ -43,7 +42,6 @@ export function createResolveConfig(aliases: Record<string, string>) {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
     alias: aliases,
     // Performance optimizations
-    symlinks: false,
     cacheWithContext: false,
   };
 }
@@ -102,15 +100,16 @@ export function createProdOptimization(
         vendors: false,
         // React vendor chunk
         react: {
-          test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-          name: "react-vendor",
+          test: /[\\/]node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/,
+          name: "framework",
           chunks: "all",
           priority: 40,
+          enforce: true,
         },
-        // Framework chunk (arcanajs)
-        framework: {
+        // ArcanaJS Core
+        arcanajs: {
           test: /[\\/]node_modules[\\/]arcanajs[\\/]/,
-          name: "framework",
+          name: "arcanajs",
           chunks: "all",
           priority: 30,
         },
@@ -175,9 +174,23 @@ export function createOutputConfig(
 /**
  * Creates watch options optimized for performance
  */
-export function createWatchOptions(): webpack.Configuration["watchOptions"] {
+export function createWatchOptions(
+  extraIgnored: (string | RegExp)[] = []
+): webpack.Configuration["watchOptions"] {
+  const ignored: (string | RegExp)[] = [
+    // Always ignore these
+    "**/node_modules",
+    "**/.git/**",
+    // Absolute path ignores to prevent loops
+    path.resolve(cwd, ".arcanajs"),
+    path.resolve(cwd, "dist"),
+    path.resolve(cwd, "node_modules"),
+    // Add any extra ignores
+    ...extraIgnored,
+  ];
+
   return {
-    ignored: ["**/node_modules", "**/.arcanajs/**", "**/dist/**", "**/.git/**"],
+    ignored: ignored as any,
     // Use native file system events
     poll: false,
     // Aggregate changes

@@ -69,7 +69,7 @@ export class ViewsResolver {
   private loadFromAlias(): Record<string, React.FC<any>> | undefined {
     try {
       // @ts-ignore - This alias is injected by Webpack
-      const injectedViews = require("arcana-views");
+      const injectedViews = require("arcanajs-views");
       if (injectedViews) {
         return this.loadFromContext(injectedViews);
       }

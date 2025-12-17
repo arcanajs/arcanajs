@@ -36,8 +36,8 @@ interface NavigationOptions {
  * import { hydrateArcanaJS } from 'arcanajs/client';
  *
  * // @ts-ignore
- * const views = require("arcana-views");
- * 
+ * const views = require("arcanajs-views");
+ *
  * hydrateArcanaJS(views, undefined, {
  *   onNavigate: (url) => {
  *     // Track page views

@@ -1,4 +1,4 @@
-import { Body, Head, Link, Page } from "arcanajs/client";
+import { Body, Head, Link, Page, usePage } from "arcanajs/client";
 
 interface ErrorPageProps {
   message?: string;
@@ -6,11 +6,13 @@ interface ErrorPageProps {
   stack?: string;
 }
 
-export default function ErrorPage({
-  message = "Something went wrong",
-  statusCode = 500,
-  stack,
-}: ErrorPageProps) {
+export default function ErrorPage() {
+  const {
+    message = "Something went wrong",
+    statusCode = 500,
+    stack,
+  } = usePage<ErrorPageProps>();
+  
   const isDevelopment = process.env.NODE_ENV === "development";
 
   return (

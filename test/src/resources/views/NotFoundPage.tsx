@@ -4,7 +4,7 @@ import { Body, Head, Link, Page, usePage } from "arcanajs/client";
 export default function NotFoundPage() {
   const { url } = usePage<NotFoundPageData>();
   return (
-    <Page>
+    <Page> 
       <Head>
         <title>404 - Page Not Found</title>
         <meta

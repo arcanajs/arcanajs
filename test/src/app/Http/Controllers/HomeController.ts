@@ -1,6 +1,5 @@
 import { HomePageData } from "@/types/HomePageData";
 import type { Request, Response } from "arcanajs/server";
-
 class HomeController {
   async index(_req: Request, res: Response) {
     try {

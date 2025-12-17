@@ -5,7 +5,7 @@
     "email": "mohammed.bencheikh.dev@gmail.com",
     "url": "https://mohammedbencheikh.com/"
   },
-  "version": "6.0.5",
+  "version": "6.1.0-beta.1",
   "description": "ArcanaJS Framework",
   "main": "./dist/arcanajs.js",
   "scripts": {
@@ -141,6 +141,7 @@
     "@babel/plugin-transform-private-methods": "^7.27.1",
     "@babel/plugin-transform-private-property-in-object": "^7.27.1",
     "@faker-js/faker": "^10.1.0",
+    "@swc/core": "^1.15.4",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/argon2": "^0.14.1",
     "@types/compression": "^1.8.1",
@@ -166,6 +167,7 @@
     "pg": "^8.16.3",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "swc-loader": "^0.2.6",
     "tailwindcss": "^4.1.17",
     "terser-webpack-plugin": "^5.3.15"
   },

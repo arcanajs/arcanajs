@@ -1,12 +1,46 @@
 import { createRequire } from "node:module";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import webpack from "webpack";
 import nodeExternals from "webpack-node-externals";
 
 const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const TerserPlugin = require("terser-webpack-plugin");
 
 const cwd = process.cwd();
+
+// SWC Configuration factory
+const getSwcConfig = (isDev: boolean) => ({
+  jsc: {
+    parser: {
+      syntax: "typescript",
+      tsx: true,
+      decorators: true,
+      dynamicImport: true,
+    },
+    transform: {
+      legacyDecorator: true,
+      decoratorMetadata: true,
+      react: {
+        runtime: "automatic",
+        development: isDev,
+      },
+    },
+    target: "es2020",
+  },
+  module: {
+    type: "commonjs",
+  },
+});
+
+// Base cache configuration
+const baseCache: webpack.FileCacheOptions = {
+  type: "filesystem",
+  buildDependencies: {
+    config: [__filename],
+  },
+};
 
 const commonConfig: webpack.Configuration = {
   target: "node",
@@ -21,7 +55,6 @@ const commonConfig: webpack.Configuration = {
     "cli/index": path.resolve(cwd, "src/cli/index.ts"),
   },
   output: {
-    path: path.resolve(cwd, "dist"),
     library: {
       type: "commonjs",
     },
@@ -29,39 +62,47 @@ const commonConfig: webpack.Configuration = {
   },
   externals: [
     nodeExternals({ allowlist: ["reflect-metadata"] }),
-    "arcana-views",
+    "arcanajs-views",
+    "react",
+    "react-dom",
+    "react-dom/client",
+    "react-dom/server",
   ],
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
+    alias: {
+      react: path.resolve(cwd, "node_modules/react"),
+      "react-dom": path.resolve(cwd, "node_modules/react-dom"),
+    },
   },
+  plugins: [],
+  // Use non-eval sourcemaps to support strict CSP in consumer apps
+  devtool: "cheap-module-source-map",
+};
+
+const devConfig: webpack.Configuration = {
+  ...commonConfig,
   module: {
     rules: [
       {
         test: /\.(ts|tsx|js|jsx)$/,
         exclude: /node_modules/,
         use: {
-          loader: "babel-loader",
-          options: {
-            presets: [
-              ["@babel/preset-env", { targets: { node: "16" } }],
-              "@babel/preset-react",
-              "@babel/preset-typescript",
-            ],
-          },
+          loader: "swc-loader",
+          options: getSwcConfig(true),
         },
       },
     ],
   },
-  plugins: [],
-  devtool: "source-map",
-};
-
-const devConfig: webpack.Configuration = {
-  ...commonConfig,
   mode: "development",
+  name: "development",
+  // Unique cache name for development build
+  cache: {
+    ...baseCache,
+    name: "arcanajs-framework-build-development",
+  },
   entry: {
     ...(commonConfig.entry as Record<string, string>),
-    // Add HMR client only in development
     "lib/client/hmr-client": path.resolve(cwd, "src/lib/client/hmr-client.ts"),
   },
   output: {
@@ -92,23 +133,46 @@ const devConfig: webpack.Configuration = {
 
 const prodConfig: webpack.Configuration = {
   ...commonConfig,
+  module: {
+    rules: [
+      {
+        test: /\.(ts|tsx|js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "swc-loader",
+          options: getSwcConfig(false),
+        },
+      },
+    ],
+  },
   mode: "production",
+  name: "production",
+  // Unique cache name for production build
+  cache: {
+    ...baseCache,
+    name: "arcanajs-framework-build-production",
+  },
   output: {
     ...commonConfig.output,
     path: path.resolve(cwd, "dist/production"),
     filename: "[name].min.js",
   },
+  devtool: "source-map",
   optimization: {
     nodeEnv: false,
     minimize: true,
     minimizer: [
       new TerserPlugin({
         terserOptions: {
+          compress: {
+            passes: 2,
+          },
           format: {
             comments: false,
           },
         },
         extractComments: false,
+        parallel: true,
       }),
     ],
     splitChunks: {
