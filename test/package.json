@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^10.1.0",
-    "arcanajs": "6.0.5",
+    "arcanajs": "6.1.0-beta.2",
     "mongodb": "^7.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
