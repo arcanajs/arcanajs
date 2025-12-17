@@ -47,7 +47,7 @@
     }
   },
   "bin": {
-    "arcanajs": "./bin/arcanajs.js"
+    "arcanajs": "bin/arcanajs.js"
   },
   "files": [
     "dist",
@@ -187,7 +187,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/arcanajs/arcanajs.git"
+    "url": "git+https://github.com/arcanajs/arcanajs.git"
   },
   "bugs": {
     "url": "https://github.com/arcanajs/arcanajs/issues"
