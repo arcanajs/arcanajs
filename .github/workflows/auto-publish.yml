@@ -154,8 +154,16 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          echo "Publishing version ${{ steps.version.outputs.version }} to npm..."
-          npm publish --access public
+          VERSION=${{ steps.version.outputs.version }}
+          echo "Publishing version $VERSION to npm..."
+          # Check if the version is a prerelease (contains beta, alpha, or rc)
+          if [[ $VERSION == *-beta* || $VERSION == *-alpha* || $VERSION == *-rc* ]]; then
+            echo "Detected prerelease version, publishing with --tag beta"
+            npm publish --tag beta --access public
+          else
+            echo "Publishing stable version"
+            npm publish --access public
+          fi
 
       - name: Create GitHub Release
         if: steps.check_npm.outputs.already_published != 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
