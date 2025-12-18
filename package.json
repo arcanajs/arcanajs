@@ -5,7 +5,7 @@
     "email": "mohammed.bencheikh.dev@gmail.com",
     "url": "https://mohammedbencheikh.com/"
   },
-  "version": "6.1.0-beta.2",
+  "version": "6.1.0-beta.3",
   "description": "ArcanaJS Framework",
   "main": "./dist/arcanajs.js",
   "scripts": {
@@ -101,10 +101,11 @@
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
-    "babel-plugin-transform-typescript-metadata": "^0.4.0",
+    "@types/express": "^5.0.6",
     "@types/ws": "^8.18.1",
     "argon2": "^0.44.0",
     "babel-loader": "^10.0.0",
+    "babel-plugin-transform-typescript-metadata": "^0.4.0",
     "bcryptjs": "^3.0.3",
     "clean-webpack-plugin": "^4.0.0",
     "compression": "^1.8.1",
