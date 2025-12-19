@@ -11,7 +11,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.json --emitDeclarationOnly && webpack --config webpack.config.ts && cp -r src/types dist/ && node scripts/post-build.js && node scripts/create-entry-points.js",
     "update": "node scripts/update-packages.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:csrf": "jest src/lib/server/__tests__/CsrfMiddleware.test.ts"
   },
   "exports": {
     "./express-types": {
@@ -151,6 +154,7 @@
     "@types/ejs": "^3.1.5",
     "@types/express-session": "^1.18.2",
     "@types/html-to-text": "^9.0.4",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
     "@types/nodemailer": "^7.0.4",
@@ -162,6 +166,7 @@
     "connect-redis": "^9.0.0",
     "handlebars": "^4.7.8",
     "ioredis": "^5.8.2",
+    "jest": "^29.7.0",
     "mongodb": "^7.0.0",
     "mysql2": "^3.15.3",
     "nodemailer-mailgun-transport": "^2.1.5",
@@ -170,7 +175,8 @@
     "react-dom": "^19.2.1",
     "swc-loader": "^0.2.6",
     "tailwindcss": "^4.1.17",
-    "terser-webpack-plugin": "^5.3.15"
+    "terser-webpack-plugin": "^5.3.15",
+    "ts-jest": "^29.4.6"
   },
   "keywords": [
     "arcanajs",
